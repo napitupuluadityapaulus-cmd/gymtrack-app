@@ -1,21 +1,23 @@
 {
+  "id": "./",
   "name": "GYMTRACK by AditNapit",
   "short_name": "GYMTRACK",
   "description": "Aplikasi pelacak latihan gym untuk mencatat set, repetisi, dan beban.",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#050510",
   "theme_color": "#00f0ff",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/192/2936/2936886.png",
+      "src": "./icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2936/2936886.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
