@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="id" x-data="gymApp()" x-init="init()">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GYMTRACK by AditNapit</title>
+<meta name="theme-color" content="#050510">
+<link rel="manifest" href='data:application/manifest+json,{"name":"GYMTRACK by AditNapit","short_name":"GYMTRACK","start_url":".","display":"standalone","background_color":"#050510","theme_color":"#00f0ff","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2936/2936886.png","sizes":"512x512","type":"image/png"}]}'>
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --accent: #00f0ff;
+  --accent-2: #bf00ff;
+  --accent-glow: rgba(0,240,255,0.35);
+  --accent-soft: rgba(0,240,255,0.12);
+  --bg: #050510;
+  --surface: rgba(255,255,255,0.03);
+  --surface-2: rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.14);
+  --text: #f0f2f8;
+  --text-dim: rgba(240,242,248,0.45);
+  --text-mute: rgba(240,242,248,0.25);
+}
+*{-webkit-tap-highlight-color:transparent; box-sizing:border-box;}
+html,body{margin:0; padding:0;}
+body{
+  font-family:'Space Grotesk',sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  letter-spacing:-0.01em;
+}
+[x-cloak]{display:none!important;}
+
+/* ========== AURORA BACKGROUND ========== */
+.bg-aurora{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
+.aurora-blob{
+  position:absolute; border-radius:50%; filter:blur(80px); opacity:0.5;
+  will-change: transform;
+}
+.aurora-blob.b1{
+  width:70%; height:55%; top:-15%; left:-20%;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 65%);
+  opacity:0.22;
+  animation: aurora-1 18s ease-in-out infinite;
+}
+.aurora-blob.b2{
+  width:60%; height:50%; top:10%; right:-25%;
+  background: radial-gradient(circle, var(--accent-2) 0%, transparent 65%);
+  opacity:0.20;
+  animation: aurora-2 22s ease-in-out infinite;
+}
+.aurora-blob.b3{
+  width:80%; height:40%; bottom:-20%; left:10%;
+  background: radial-gradient(circle, #ff006e 0%, transparent 70%);
+  opacity:0.10;
+  animation: aurora-1 25s ease-in-out infinite reverse;
+}
+@keyframes aurora-1{
+  0%,100%{ transform: translate(0,0) scale(1); }
+  50%{ transform: translate(30px, -20px) scale(1.15); }
+}
+@keyframes aurora-2{
+  0%,100%{ transform: translate(0,0) scale(1); }
+  50%{ transform: translate(-40px, 30px) scale(1.1); }
+}
+.bg-grid{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 90%);
+  -webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 90%);
+}
+.bg-noise{
+  position:fixed; inset:0; z-index:1; pointer-events:none; opacity:0.035;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ========== TYPOGRAPHY ========== */
+.font-display{font-family:'Orbitron',sans-serif; letter-spacing:0.04em;}
+.num{font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; letter-spacing:-0.04em; font-feature-settings:"tnum";}
+.gradient-text{
+  background:linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 55%, #ff006e 100%);
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  background-size:200% 200%;
+  animation: gradient-shift 6s ease infinite;
+}
+@keyframes gradient-shift{
+  0%,100%{ background-position:0% 50%; }
+  50%{ background-position:100% 50%; }
+}
+.label{font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.16em; color:var(--text-mute);}
+
+/* ========== PREMIUM CARD ========== */
+.card{
+  position:relative;
+  background: linear-gradient(155deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.015) 55%, rgba(255,255,255,0.005) 100%);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.05) inset,
+    0 -1px 0 rgba(0,0,0,0.2) inset,
+    0 12px 40px -12px rgba(0,0,0,0.5);
+}
+.card::before{
+  content:''; position:absolute; top:0; left:15%; right:15%; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+  pointer-events:none;
+}
+.card::after{
+  content:''; position:absolute; inset:0; pointer-events:none; border-radius:22px;
+  background: radial-gradient(circle at 50% 0%, var(--accent-glow) 0%, transparent 55%);
+  opacity:0.15;
+}
+.card-elevated{ box-shadow:
+  0 1px 0 rgba(255,255,255,0.08) inset,
+  0 -1px 0 rgba(0,0,0,0.25) inset,
+  0 24px 60px -20px var(--accent-glow),
+  0 12px 40px -12px rgba(0,0,0,0.6);
+}
+.card-interactive:active{ transform: scale(0.985); transition: transform 0.1s; }
+
+/* ========== INPUTS ========== */
+.input{
+  width:100%;
+  background: rgba(255,255,255,0.035);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 14px;
+  transition: all 0.2s ease;
+  font-family:'Space Grotesk',sans-serif;
+  font-weight: 500;
+}
+.input:focus{
+  outline:none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft), 0 0 24px -4px var(--accent-glow);
+  background: rgba(255,255,255,0.055);
+}
+.input::placeholder{ color: var(--text-mute); font-weight:500; }
+
+/* ========== BUTTONS ========== */
+.btn-primary{
+  position:relative;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 130%);
+  color: #000;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  border-radius: 14px;
+  transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.4) inset,
+    0 -2px 0 rgba(0,0,0,0.15) inset,
+    0 8px 24px -6px var(--accent-glow);
+  overflow:hidden;
+  font-family:'Space Grotesk',sans-serif;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+.btn-primary::before{
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+.btn-primary:hover::before{ transform: translateX(100%); }
+.btn-primary:active{ transform: scale(0.97); }
+.btn-primary:disabled{ opacity:0.35; cursor:not-allowed; box-shadow:none; }
+
+.btn-success{
+  background: linear-gradient(135deg, #00ff88 0%, #00b359 100%);
+  color: #001a0d;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  border-radius: 14px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.4) inset,
+    0 -2px 0 rgba(0,0,0,0.2) inset,
+    0 8px 24px -6px rgba(0,255,136,0.5);
+  transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+  text-transform: uppercase;
+  font-size: 13px;
+}
+.btn-success:active{ transform: scale(0.97); }
+
+/* ========== CHIPS ========== */
+.chip{
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  transition: all 0.2s cubic-bezier(0.16,1,0.3,1);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.chip:hover{ border-color: var(--border-strong); color: var(--text); }
+.chip.active{
+  background: linear-gradient(135deg, var(--accent-soft), rgba(191,0,255,0.08));
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 20px var(--accent-glow), 0 1px 0 rgba(255,255,255,0.15) inset;
+}
+
+/* ========== NAV ========== */
+.nav-dock{
+  background: rgba(10,10,22,0.72);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--border-strong);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 20px 60px -15px rgba(0,0,0,0.8),
+    0 0 40px -20px var(--accent-glow);
+}
+.nav-item{
+  position: relative;
+  padding: 11px 16px;
+  border-radius: 14px;
+  color: var(--text-mute);
+  transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+.nav-item.active{
+  color: #000;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 4px 16px -4px var(--accent-glow);
+}
+.nav-item:not(.active):hover{ color: var(--text); background: rgba(255,255,255,0.04); }
+
+/* ========== SET ROWS ========== */
+.set-row{ border-left: 3px solid var(--accent); }
+.set-row.warmup{ border-left-color: #ffbe0b; opacity: 0.7; }
+.set-row.failure{ border-left-color: #ff006e; }
+.set-row.drop{ border-left-color: var(--accent-2); }
+
+/* ========== ANIMATIONS ========== */
+@keyframes slide-up{ from{opacity:0; transform: translateY(20px);} to{opacity:1; transform: translateY(0);} }
+.slide-up{ animation: slide-up 0.4s cubic-bezier(0.16,1,0.3,1); }
+
+@keyframes fade-in{ from{opacity:0;} to{opacity:1;} }
+.fade-in{ animation: fade-in 0.3s ease; }
+
+@keyframes pulse-dot{
+  0%,100%{ opacity:1; transform:scale(1); box-shadow: 0 0 0 0 var(--accent-glow); }
+  50%{ opacity:0.7; transform:scale(0.85); box-shadow: 0 0 0 6px transparent; }
+}
+.pulse-dot{ animation: pulse-dot 2s ease-in-out infinite; }
+
+.ring-progress{ transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.6s cubic-bezier(0.16,1,0.3,1); filter: drop-shadow(0 0 6px var(--accent-glow)); }
+
+.scrollbar-hide::-webkit-scrollbar{ display:none; }
+.scrollbar-hide{ -ms-overflow-style:none; scrollbar-width:none; }
+
+.skeleton{
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+}
+@keyframes shimmer{ 0%{ background-position:200% 0; } 100%{ background-position:-200% 0; } }
+
+/* ========== CONFETTI ========== */
+@keyframes fall{
+  0%{ transform: translateY(-10vh) rotate(0deg); opacity:1; }
+  100%{ transform: translateY(100vh) rotate(720deg); opacity:0; }
+}
+.confetti{ position:fixed; top:0; width:8px; height:8px; border-radius:2px; background: var(--accent); animation: fall 3s linear infinite; }
+.confetti:nth-child(2n){ background: var(--accent-2); width:6px; height:6px; animation-duration:2.5s; }
+.confetti:nth-child(3n){ background: #ffbe0b; width:10px; height:10px; animation-duration:3.5s; }
+.confetti:nth-child(4n){ background: #ff006e; animation-duration:2.8s; }
+
+/* ========== SLIDER ========== */
+input[type="range"]{
+  -webkit-appearance: none;
+  background: transparent;
+  height: 24px;
+}
+input[type="range"]::-webkit-slider-runnable-track{
+  height: 6px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+  border-radius: 999px;
+  opacity: 0.85;
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance: none;
+  width: 22px; height: 22px;
+  margin-top: -8px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--accent);
+  cursor: pointer;
+  box-shadow: 0 0 16px var(--accent-glow), 0 2px 8px rgba(0,0,0,0.5);
+  transition: transform 0.15s;
+}
+input[type="range"]::-webkit-slider-thumb:active{ transform: scale(1.15); }
+
+/* ========== UTILS ========== */
+.divider{ height:1px; background: linear-gradient(90deg, transparent, var(--border-strong), transparent); }
+.badge{
+  display:inline-flex; align-items:center; gap:4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.glow-dot{ width:6px; height:6px; border-radius:50%; box-shadow: 0 0 8px currentColor; }
+</style>
+</head>
+<body :style="getAccentStyle()">
+
+<!-- BACKGROUND LAYERS -->
+<div class="bg-aurora">
+  <div class="aurora-blob b1"></div>
+  <div class="aurora-blob b2"></div>
+  <div class="aurora-blob b3"></div>
+</div>
+<div class="bg-grid"></div>
+<div class="bg-noise"></div>
+
+<!-- HEADER -->
+<header class="relative z-10 max-w-md mx-auto px-5 pt-6 pb-4 flex justify-between items-center">
+  <div class="flex items-center gap-3">
+    <div class="relative w-12 h-12 flex items-center justify-center rounded-2xl" style="background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); border: 1px solid var(--border-strong);">
+      <svg class="absolute inset-0 w-full h-full -rotate-90 p-1">
+        <circle cx="24" cy="24" r="21" stroke="rgba(255,255,255,0.06)" stroke-width="2.5" fill="none"/>
+        <circle cx="24" cy="24" r="21" :stroke="accentColor" stroke-width="2.5" fill="none"
+                stroke-linecap="round" stroke-dasharray="132"
+                :stroke-dashoffset="132 - (132 * xpProgress / 100)"
+                style="filter: drop-shadow(0 0 6px var(--accent-glow)); transition: stroke-dashoffset 0.6s cubic-bezier(0.16,1,0.3,1);"/>
+      </svg>
+      <span class="num text-sm font-black relative z-10" :style="'color:' + accentColor" x-text="level"></span>
+    </div>
+    <div>
+      <h1 class="font-display text-[13px] font-black tracking-[0.08em] text-white leading-none">GYM<span class="gradient-text">TRACK</span></h1>
+      <p class="text-[8px] font-bold tracking-[0.1em] mt-1" style="color: var(--accent);">by AditNapit</p>
+      <div class="flex items-center gap-1.5 mt-1">
+        <div class="w-1.5 h-1.5 rounded-full pulse-dot" :style="'background:' + accentColor"></div>
+        <p class="text-[9px] font-bold uppercase tracking-[0.15em]" style="color: var(--text-mute);" x-text="'LVL ' + level + ' · ' + xp + ' XP'"></p>
+      </div>
+    </div>
+  </div>
+  <div class="flex items-center gap-2">
+    <div class="flex items-center gap-1.5 px-3 py-2 rounded-xl" style="background: rgba(255,166,0,0.08); border: 1px solid rgba(255,166,0,0.2);">
+      <i data-lucide="flame" class="w-3.5 h-3.5" style="color:#ffa600"></i>
+      <span class="num text-sm font-black" style="color:#ffa600" x-text="streak"></span>
+    </div>
+    <button @click="view='settings'" class="w-10 h-10 rounded-xl flex items-center justify-center transition"
+            :style="view==='settings' ? 'background: ' + accentColor + '; color:#000' : 'background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-dim)'">
+      <i data-lucide="settings" class="w-4 h-4"></i>
+    </button>
+  </div>
+</header>
+
+<main class="relative z-10 max-w-md mx-auto px-5 pb-32">
+
+<!-- ========== LOG VIEW ========== -->
+<div x-show="view==='log'" x-cloak class="space-y-4 fade-in">
+
+  <!-- MOTIVATION + WEEKLY GOAL -->
+  <div class="grid grid-cols-5 gap-3">
+    <div class="card p-4 col-span-2 slide-up" style="animation-delay: 0s;">
+      <p class="label mb-2">Target</p>
+      <div class="flex items-end gap-1">
+        <p class="num text-2xl font-black text-white leading-none"><span x-text="weeklyCompleted"></span></p>
+        <p class="num text-xs font-bold mb-0.5" style="color: var(--text-mute);">/<span x-text="weeklyGoal"></span></p>
+      </div>
+      <div class="mt-3 rounded-full h-1.5 overflow-hidden" style="background: rgba(255,255,255,0.06);">
+        <div class="h-full rounded-full transition-all duration-500" :style="'width:' + Math.min(100, (weeklyCompleted/weeklyGoal)*100) + '%; background: linear-gradient(90deg, ' + accentColor + ', #00ff88);'"></div>
+      </div>
+    </div>
+    <div class="card p-4 col-span-3 flex items-center slide-up" style="animation-delay: 0.05s;">
+      <div>
+        <div class="flex items-center gap-1.5 mb-1">
+          <i data-lucide="quote" class="w-3 h-3" :style="'color:' + accentColor"></i>
+          <p class="text-[8px] font-black uppercase tracking-[0.15em]" style="color: var(--text-mute);">Hari Ini</p>
+        </div>
+        <p class="text-[11px] font-medium leading-snug" style="color: var(--text-dim);" x-text="dailyQuote"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SESSION SUMMARY -->
+  <div class="card card-elevated p-5 slide-up" style="animation-delay: 0.1s;">
+    <div class="flex items-center gap-4">
+      <div class="relative flex-shrink-0">
+        <svg width="96" height="96" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" :stop-color="accentColor"/>
+              <stop offset="100%" stop-color="#bf00ff"/>
+            </linearGradient>
+          </defs>
+          <circle cx="50" cy="50" r="42" stroke="rgba(255,255,255,0.05)" stroke-width="7" fill="none"/>
+          <circle cx="50" cy="50" r="42" stroke="url(#ringGrad)" stroke-width="7" fill="none"
+                  stroke-linecap="round" stroke-dasharray="264"
+                  :stroke-dashoffset="264 - (264 * Math.min(sessionSets, 20) / 20)"
+                  class="ring-progress"/>
+        </svg>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <span class="num text-2xl font-black" :style="'color:' + accentColor" x-text="sessionSets"></span>
+          <span class="text-[8px] font-black uppercase tracking-[0.18em]" style="color: var(--text-mute);">Sets</span>
+        </div>
+      </div>
+      <div class="flex-1 grid grid-cols-2 gap-2">
+        <div class="rounded-xl p-2.5" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border);">
+          <p class="text-[8px] font-black uppercase tracking-wider" style="color: var(--text-mute);">Volume</p>
+          <p class="num text-base font-black text-white mt-0.5" x-text="formatNum(sessionVolume)"></p>
+        </div>
+        <div class="rounded-xl p-2.5" style="background: rgba(255,166,0,0.05); border: 1px solid rgba(255,166,0,0.15);">
+          <p class="text-[8px] font-black uppercase tracking-wider" style="color: rgba(255,166,0,0.6);">Burned</p>
+          <p class="num text-base font-black" style="color:#ffa600" x-text="sessionCal"></p>
+        </div>
+        <div class="rounded-xl p-2.5" style="background: rgba(191,0,255,0.05); border: 1px solid rgba(191,0,255,0.15);">
+          <p class="text-[8px] font-black uppercase tracking-wider" style="color: rgba(191,0,255,0.7);">Waktu</p>
+          <p class="num text-base font-black" style="color:#bf00ff" x-text="sessionDurationLabel"></p>
+        </div>
+        <div class="rounded-xl p-2.5" style="background: rgba(0,255,136,0.05); border: 1px solid rgba(0,255,136,0.15);">
+          <p class="text-[8px] font-black uppercase tracking-wider" style="color: rgba(0,255,136,0.7);">Gerakan</p>
+          <p class="num text-base font-black" style="color:#00ff88" x-text="Object.keys(sessionByExercise).length"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROUTINES -->
+  <div x-show="Object.keys(sessionByExercise).length === 0 && routines.length > 0" class="space-y-2 slide-up" style="animation-delay: 0.15s;">
+    <div class="flex items-center justify-between px-1">
+      <p class="label">Rutinitas Tersimpan</p>
+      <span class="text-[9px] font-bold" style="color: var(--text-mute);" x-text="routines.length + ' templates'"></span>
+    </div>
+    <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+      <template x-for="(routine, idx) in routines" :key="idx">
+        <button @click="loadRoutine(routine)" class="card card-interactive p-3.5 min-w-[150px] text-left">
+          <div class="flex items-center gap-2 mb-1.5">
+            <i data-lucide="layers" class="w-3.5 h-3.5" :style="'color:' + accentColor"></i>
+            <p class="text-[10px] font-black uppercase tracking-wider" style="color: var(--text-mute);">Template</p>
+          </div>
+          <p class="text-xs font-bold text-white truncate" x-text="routine.name"></p>
+          <p class="text-[10px] mt-1" style="color: var(--text-mute);" x-text="routine.exercises.length + ' gerakan'"></p>
+        </button>
+      </template>
+    </div>
+  </div>
+
+  <!-- EXERCISE PICKER -->
+  <div x-show="!activeEx" class="space-y-3 slide-up" style="animation-delay: 0.2s;">
+    <div class="relative">
+      <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style="color: var(--text-mute);"></i>
+      <input type="text" x-model="qEx" placeholder="Cari gerakan gym..." class="input w-full pl-11 pr-4 py-3.5 text-sm">
+    </div>
+
+    <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+      <template x-for="m in ['All','Favorites','Chest','Back','Legs','Shoulders','Biceps','Triceps','Core','Traps','Olympic','Full Body','Cardio']" :key="m">
+        <button @click="muscleFilter = m" class="chip" :class="muscleFilter === m ? 'active' : ''" x-text="m"></button>
+      </template>
+    </div>
+
+    <!-- RECENT -->
+    <div x-show="!qEx && muscleFilter === 'All' && recentExercises.length > 0" class="space-y-2 mb-1">
+      <p class="label px-1">Terakhir Dilakukan</p>
+      <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+        <template x-for="ex in recentExercises" :key="ex.id">
+          <button @click="selectExercise(ex)" class="card card-interactive px-3 py-2 flex items-center gap-2 whitespace-nowrap">
+            <div class="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0" :style="'background: ' + accentColor + '15;'">
+              <i data-lucide="dumbbell" class="w-3 h-3" :style="'color:' + accentColor"></i>
+            </div>
+            <span class="text-[11px] font-bold text-white" x-text="ex.name"></span>
+          </button>
+        </template>
+      </div>
+    </div>
+
+    <div class="space-y-2 max-h-[440px] overflow-y-auto scrollbar-hide">
+      <template x-for="ex in filteredExercises" :key="ex.id">
+        <div @click="selectExercise(ex)" class="card card-interactive w-full p-3 flex items-center gap-3 text-left cursor-pointer">
+          <div class="relative flex-shrink-0 w-[52px] h-[52px] rounded-xl overflow-hidden" :style="'border: 1px solid ' + accentColor + '35; background: #0a0a1a;'">
+            <img x-show="ex.gifUrl && !ex.imageError" :src="ex.gifUrl" :alt="ex.name" class="w-full h-full object-cover" loading="lazy" @error="ex.imageError = true">
+            <div x-show="!ex.gifUrl || ex.imageError" class="absolute inset-0 flex items-center justify-center skeleton">
+              <i data-lucide="dumbbell" class="w-5 h-5" style="color: var(--text-mute);"></i>
+            </div>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <p class="text-[13px] font-bold text-white truncate" x-text="ex.name"></p>
+              <span x-show="muscleRecovery[ex.muscle] !== undefined" class="badge" :class="getRecoveryClass(muscleRecovery[ex.muscle])" x-text="getRecoveryLabel(muscleRecovery[ex.muscle])"></span>
+            </div>
+            <p class="text-[9px] font-bold uppercase tracking-[0.1em] mt-0.5" style="color: var(--text-mute);" x-text="ex.muscle + ' · ' + ex.equipment"></p>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <div class="text-right">
+              <p class="num text-[10px] font-black" :style="'color:' + accentColor" x-text="(prFor(ex.id) || '-') + 'kg'"></p>
+              <p class="text-[8px] font-bold" style="color: var(--text-mute);">PR</p>
+            </div>
+            <button @click.stop="toggleFavorite(ex.id)" class="p-1.5">
+              <i :data-lucide="isFavorite(ex.id) ? 'star' : 'star'" class="w-4 h-4" :style="isFavorite(ex.id) ? 'color: #ffbe0b; fill: #ffbe0b;' : 'color: rgba(255,255,255,0.18);'"></i>
+            </button>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- ACTIVE EXERCISE -->
+  <div x-show="activeEx" class="card card-elevated p-5 space-y-4 slide-up">
+    <div class="flex items-start gap-3">
+      <div class="relative flex-shrink-0 w-[88px] h-[88px] rounded-2xl overflow-hidden" :style="'border: 1.5px solid ' + accentColor + '50; background: #0a0a1a; box-shadow: 0 0 24px ' + accentColor + '25;'">
+        <img x-show="activeEx?.gifUrl && !activeEx?.imageError" :src="activeEx?.gifUrl" :alt="activeEx?.name" class="w-full h-full object-cover" @error="activeEx.imageError = true">
+        <div x-show="!activeEx?.gifUrl || activeEx?.imageError" class="absolute inset-0 flex items-center justify-center skeleton">
+          <i data-lucide="dumbbell" class="w-8 h-8" style="color: var(--text-mute);"></i>
+        </div>
+      </div>
+      <div class="min-w-0 flex-1">
+        <h3 class="text-base font-black text-white leading-tight" x-text="activeEx?.name"></h3>
+        <p class="text-[9px] font-bold uppercase tracking-wider mt-1" :style="'color:' + accentColor" x-text="activeEx ? activeEx.muscle + ' · ' + activeEx.equipment : ''"></p>
+        <div class="flex items-center gap-2 mt-2">
+          <button x-show="activeEx?.gifUrl && !activeEx?.imageError" @click="openDemo(activeEx)" class="text-[10px] font-bold underline underline-offset-2 decoration-1" :style="'color:' + accentColor">Lihat Gerakan</button>
+          <span style="color: var(--text-mute);">·</span>
+          <button @click="editNote(activeEx)" class="text-[10px] font-bold flex items-center gap-1" style="color: var(--text-dim);"><i data-lucide="file-text" class="w-3 h-3"></i> Catatan</button>
+        </div>
+        <div x-show="activeEx?.note" class="mt-1.5 text-[10px] italic rounded-lg p-2 border" style="color: var(--text-dim); background: rgba(255,255,255,0.03); border-color: var(--border);" x-text="activeEx?.note"></div>
+      </div>
+      <button @click="cancelExercise()" class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(255,255,255,0.05);">
+        <i data-lucide="x" class="w-4 h-4" style="color: var(--text-dim);"></i>
+      </button>
+    </div>
+
+    <!-- PROGRESSIVE OVERLOAD -->
+    <div x-show="getLastPerformance(activeEx?.id)" class="rounded-xl p-3" :style="'background: ' + accentColor + '08; border: 1px solid ' + accentColor + '30;'">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" :style="'background: ' + accentColor + '20;'">
+            <i data-lucide="trending-up" class="w-3.5 h-3.5" :style="'color:' + accentColor"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[8px] font-black uppercase tracking-wider" style="color: var(--text-mute);">Terakhir</p>
+            <p class="num text-[11px] font-black text-white truncate" x-text="getLastPerformance(activeEx?.id)?.weight + 'kg × ' + getLastPerformance(activeEx?.id)?.reps"></p>
+          </div>
+        </div>
+        <div class="text-right flex-shrink-0">
+          <p class="text-[8px] font-black uppercase tracking-wider" :style="'color:' + accentColor">Coba</p>
+          <p class="num text-[11px] font-black text-white" x-text="getProgressiveOverload(activeEx?.id)"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SET TYPE -->
+    <div class="grid grid-cols-4 gap-1.5">
+      <template x-for="t in ['working','warmup','drop','failure']" :key="t">
+        <button @click="ex_setType = t" class="py-2 rounded-lg text-[9px] font-black uppercase tracking-wider transition border"
+                :class="ex_setType === t ? 'text-black border-transparent' : 'border-transparent'"
+                :style="ex_setType === t ? 'background: ' + accentColor + ';' : 'background: rgba(255,255,255,0.04); color: var(--text-dim);'"
+                x-text="t === 'working' ? 'Work' : t === 'warmup' ? 'Warm' : t === 'drop' ? 'Drop' : 'Fail'"></button>
+      </template>
+    </div>
+
+    <!-- INPUTS -->
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="label block mb-1.5 text-center">Weight (kg)</label>
+        <input type="number" x-model="ex_weight" placeholder="60" inputmode="decimal" step="0.5" class="input w-full py-4 text-center num font-black text-2xl">
+      </div>
+      <div>
+        <label class="label block mb-1.5 text-center">Reps</label>
+        <input type="number" x-model="ex_reps" placeholder="10" inputmode="numeric" class="input w-full py-4 text-center num font-black text-2xl">
+      </div>
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="flex gap-2">
+      <button x-show="ex_weight > 20 && activeEx?.equipment === 'Barbell'" @click="generateWarmup()"
+              class="flex-1 py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider active:scale-[.98] transition flex items-center justify-center gap-1"
+              style="background: rgba(255,190,11,0.08); border: 1px solid rgba(255,190,11,0.25); color: #ffbe0b;">
+        <i data-lucide="flame" class="w-3 h-3"></i> Warm-up
+      </button>
+      <button x-show="lastSetForActiveEx" @click="repeatLastSet()"
+              class="flex-1 py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider active:scale-[.98] transition flex items-center justify-center gap-1"
+              style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-dim);">
+        <i data-lucide="copy" class="w-3 h-3"></i> Ulangi
+      </button>
+    </div>
+
+    <!-- PLATE CALC -->
+    <div x-show="activeEx?.equipment === 'Barbell' && ex_weight > 20"
+         class="rounded-xl p-3 flex items-center justify-between"
+         style="background: rgba(255,255,255,0.03); border: 1px solid var(--border);">
+      <div class="flex items-center gap-2">
+        <i data-lucide="circle-dashed" class="w-4 h-4" :style="'color:' + accentColor"></i>
+        <p class="text-[10px] font-bold" style="color: var(--text-dim);">Plat per sisi:</p>
+      </div>
+      <p class="text-[11px] font-black text-right" :style="'color:' + accentColor" x-text="plateCalculator(ex_weight)"></p>
+    </div>
+
+    <!-- 1RM -->
+    <div class="flex items-center justify-between px-1 pt-3 border-t" style="border-color: var(--border);">
+      <span class="label">Est. 1RM</span>
+      <span class="num text-sm font-black" :style="'color:' + accentColor" x-text="est1RM(ex_weight, ex_reps) + ' kg'"></span>
+    </div>
+
+    <button @click="addSet()" :disabled="!ex_reps || ex_weight === ''" class="btn-primary w-full py-4">+ Log Set</button>
+  </div>
+
+  <!-- SESSION LOG -->
+  <div x-show="Object.keys(sessionByExercise).length > 0" class="space-y-3 slide-up">
+    <div class="flex items-center justify-between px-1">
+      <p class="label">Session Log</p>
+      <button @click="resetSession()" class="text-[10px] font-black uppercase tracking-wider" style="color: rgba(255,80,80,0.7);">Reset</button>
+    </div>
+    <template x-for="(exLog, exId) in sessionByExercise" :key="exId">
+      <div class="card p-4 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <div class="min-w-0">
+            <p class="text-sm font-black truncate" :style="'color:' + accentColor" x-text="exLog.name"></p>
+            <p class="text-[9px] font-bold uppercase tracking-wider mt-0.5" style="color: var(--text-mute);" x-text="exLog.sets.length + ' sets · ' + formatNum(exLog.sets.reduce((a,s)=>a+s.weight*s.reps,0)) + ' kg'"></p>
+          </div>
+          <button @click="removeExerciseSession(exId)" class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(255,80,80,0.1);">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5" style="color: #ff5050;"></i>
+          </button>
+        </div>
+        <div class="space-y-1.5">
+          <template x-for="(s,i) in exLog.sets" :key="s.id">
+            <div class="set-row pl-3 pr-2 py-2 rounded-lg flex items-center justify-between gap-2" :class="s.type" style="background: rgba(255,255,255,0.02);">
+              <span class="text-[10px] font-black w-8" style="color: var(--text-mute);" x-text="'#' + (i+1)"></span>
+              <span class="num text-xs font-bold text-white flex-1" x-text="s.reps + ' × ' + s.weight + 'kg'"></span>
+              <span class="num text-[10px] font-bold" :style="'color:' + accentColor" x-text="'≈' + est1RM(s.weight, s.reps)"></span>
+              <button @click="removeSet(exId, i)" class="w-6 h-6 flex items-center justify-center">
+                <i data-lucide="x" class="w-3 h-3" style="color: var(--text-mute);"></i>
+              </button>
+            </div>
+          </template>
+        </div>
+      </div>
+    </template>
+    <div class="grid grid-cols-3 gap-2 mt-4">
+      <button @click="saveRoutinePrompt()" class="py-3 rounded-xl font-black text-xs uppercase tracking-wider active:scale-[.98] transition flex items-center justify-center gap-1.5"
+              style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-dim);">
+        <i data-lucide="save" class="w-3.5 h-3.5"></i> Simpan
+      </button>
+      <button @click="finishWorkout()" class="btn-success py-3 col-span-2 flex items-center justify-center gap-2">
+        <i data-lucide="flag" class="w-4 h-4"></i> Selesai
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== RECOMMEND VIEW ========== -->
+<div x-show="view==='recommend'" x-cloak class="space-y-4 fade-in">
+  <div class="flex items-center gap-3 px-1 slide-up">
+    <div class="w-11 h-11 rounded-2xl flex items-center justify-center"
+         :style="'background: linear-gradient(135deg, ' + accentColor + ', #bf00ff); box-shadow: 0 8px 24px -6px ' + accentColor + '60;'">
+      <i data-lucide="sparkles" class="w-5 h-5 text-black"></i>
+    </div>
+    <div>
+      <h2 class="font-display text-[13px] font-black text-white tracking-[0.08em]">SMART COACH</h2>
+      <p class="text-[9px] font-bold uppercase tracking-[0.15em] mt-0.5" :style="'color:' + accentColor">AI Workout Builder</p>
+    </div>
+  </div>
+
+  <div class="card p-5 space-y-5 slide-up" style="animation-delay: 0.05s;">
+    <div>
+      <p class="label mb-2.5">Target Otot</p>
+      <div class="flex flex-wrap gap-1.5">
+        <template x-for="m in recMuscles" :key="m">
+          <button @click="recInputs.muscle = m" class="chip" :class="recInputs.muscle === m ? 'active' : ''" x-text="m"></button>
+        </template>
+      </div>
+    </div>
+
+    <div>
+      <div class="flex justify-between items-center mb-3">
+        <p class="label">Target Kalori</p>
+        <div class="flex items-center gap-1">
+          <i data-lucide="flame" class="w-3.5 h-3.5" style="color:#ffa600"></i>
+          <p class="num text-lg font-black" style="color:#ffa600"><span x-text="recInputs.calTarget"></span> <span class="text-[10px]" style="color: var(--text-mute);">kcal</span></p>
+        </div>
+      </div>
+      <input type="range" x-model.number="recInputs.calTarget" min="100" max="1000" step="50" class="w-full">
+      <div class="flex justify-between text-[9px] font-bold mt-1" style="color: var(--text-mute);">
+        <span>100</span><span>300</span><span>500</span><span>700</span><span>1000</span>
+      </div>
+    </div>
+
+    <div>
+      <p class="label mb-2.5">Peralatan</p>
+      <div class="grid grid-cols-3 gap-2">
+        <button @click="recInputs.equipment = 'any'" class="py-3 rounded-xl border font-black text-[10px] uppercase tracking-wider transition"
+                :class="recInputs.equipment === 'any' ? 'text-black border-transparent' : ''"
+                :style="recInputs.equipment === 'any' ? 'background: ' + accentColor + ';' : 'background: rgba(255,255,255,0.04); border-color: var(--border); color: var(--text-dim);'">Semua</button>
+        <button @click="recInputs.equipment = 'with_equipment'" class="py-3 rounded-xl border font-black text-[10px] uppercase tracking-wider transition"
+                :class="recInputs.equipment === 'with_equipment' ? 'text-black border-transparent' : ''"
+                :style="recInputs.equipment === 'with_equipment' ? 'background: ' + accentColor + ';' : 'background: rgba(255,255,255,0.04); border-color: var(--border); color: var(--text-dim);'">Alat</button>
+        <button @click="recInputs.equipment = 'bodyweight'" class="py-3 rounded-xl border font-black text-[10px] uppercase tracking-wider transition"
+                :class="recInputs.equipment === 'bodyweight' ? 'text-black border-transparent' : ''"
+                :style="recInputs.equipment === 'bodyweight' ? 'background: ' + accentColor + ';' : 'background: rgba(255,255,255,0.04); border-color: var(--border); color: var(--text-dim);'">BW</button>
+      </div>
+    </div>
+
+    <button @click="generateRecommendation()" class="btn-primary w-full py-4 flex items-center justify-center gap-2">
+      <i data-lucide="sparkles" class="w-4 h-4"></i> Generate Workout
+    </button>
+  </div>
+
+  <template x-if="recommendation.length > 0">
+    <div class="space-y-3 slide-up" style="animation-delay: 0.1s;">
+      <div class="card p-4">
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div>
+            <p class="num text-2xl font-black" :style="'color:' + accentColor" x-text="recStats.totalSets"></p>
+            <p class="text-[8px] font-black uppercase tracking-wider mt-0.5" style="color: var(--text-mute);">Sets</p>
+          </div>
+          <div>
+            <p class="num text-2xl font-black" style="color:#ffa600" x-text="recStats.totalCal"></p>
+            <p class="text-[8px] font-black uppercase tracking-wider mt-0.5" style="color: var(--text-mute);">Kcal</p>
+          </div>
+          <div>
+            <p class="num text-2xl font-black" style="color:#bf00ff"><span x-text="recStats.estTime"></span><span class="text-sm">m</span></p>
+            <p class="text-[8px] font-black uppercase tracking-wider mt-0.5" style="color: var(--text-mute);">Durasi</p>
+          </div>
+        </div>
+      </div>
+
+      <div x-show="recStats.warning" class="rounded-2xl p-3 flex gap-2" style="background: rgba(255,190,11,0.08); border: 1px solid rgba(255,190,11,0.25);">
+        <i data-lucide="info" class="w-4 h-4 flex-shrink-0 mt-0.5" style="color:#ffbe0b"></i>
+        <p class="text-[10px] leading-relaxed" style="color: rgba(255,190,11,0.9);" x-text="recStats.warning"></p>
+      </div>
+
+      <div class="flex justify-between items-center px-1 pt-1">
+        <p class="label">Daftar Latihan</p>
+        <button @click="generateRecommendation()" class="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider" :style="'color:' + accentColor">
+          <i data-lucide="shuffle" class="w-3 h-3"></i> Acak
+        </button>
+      </div>
+
+      <template x-for="(rec, idx) in recommendation" :key="idx">
+        <button @click="startRecommendedExercise(rec)" class="card card-interactive w-full p-3 flex items-center gap-3 text-left">
+          <div class="relative flex-shrink-0 w-[52px] h-[52px] rounded-xl overflow-hidden" :style="'border: 1px solid ' + accentColor + '35; background: #0a0a1a;'">
+            <img x-show="rec.exercise.gifUrl" :src="rec.exercise.gifUrl" :alt="rec.exercise.name" class="w-full h-full object-cover" loading="lazy">
+            <div x-show="!rec.exercise.gifUrl" class="absolute inset-0 flex items-center justify-center skeleton">
+              <i data-lucide="dumbbell" class="w-5 h-5" style="color: var(--text-mute);"></i>
+            </div>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-[13px] font-bold text-white truncate" x-text="rec.exercise.name"></p>
+            <p class="text-[9px] font-bold uppercase tracking-wider mt-0.5" style="color: var(--text-mute);" x-text="rec.exercise.muscle + ' · ' + rec.exercise.equipment"></p>
+            <div class="flex flex-wrap gap-x-2 gap-y-0.5 mt-1">
+              <span class="text-[10px] font-black" :style="'color:' + accentColor" x-text="rec.reps === 'mins' ? rec.sets + ' mins' : rec.sets + ' sets'"></span>
+              <span x-show="rec.reps !== 'mins'" class="text-[10px] font-black" style="color:#bf00ff" x-text="'× ' + rec.reps + ' reps'"></span>
+              <span x-show="rec.weight > 0" class="text-[10px] font-black" style="color:#ffa600" x-text="'@ ' + rec.weight + ' kg'"></span>
+              <span x-show="rec.weight === 0 && rec.reps !== 'mins'" class="text-[10px] font-black" style="color:#00ff88">Bodyweight</span>
+              <span x-show="rec.reps === 'mins'" class="text-[10px] font-black" style="color:#00ff88">Cardio</span>
+            </div>
+          </div>
+          <i data-lucide="play-circle" class="w-5 h-5 flex-shrink-0" :style="'color:' + accentColor"></i>
+        </button>
+      </template>
+    </div>
+  </template>
+</div>
+
+<!-- ========== HISTORY VIEW ========== -->
+<div x-show="view==='history'" x-cloak class="space-y-4 fade-in">
+  <div class="flex items-center gap-3 px-1 slide-up">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(191,0,255,0.12); border: 1px solid rgba(191,0,255,0.3);">
+      <i data-lucide="history" class="w-4 h-4" style="color:#bf00ff"></i>
+    </div>
+    <h2 class="font-display text-[13px] font-black text-white tracking-[0.08em]">HISTORY</h2>
+  </div>
+
+  <div x-show="historyFeed.length === 0" class="card p-8 text-center space-y-3">
+    <div class="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center" style="background: rgba(255,255,255,0.03);">
+      <i data-lucide="calendar-x" class="w-7 h-7" style="color: var(--text-mute);"></i>
+    </div>
+    <div>
+      <p class="text-sm font-black text-white">Belum Ada Riwayat</p>
+      <p class="text-[10px] mt-1" style="color: var(--text-mute);">Selesaikan latihan pertamamu untuk melihat sejarahnya.</p>
+    </div>
+  </div>
+
+  <div class="space-y-3">
+    <template x-for="session in historyFeed" :key="session.date">
+      <div class="card p-5 space-y-3 slide-up">
+        <div class="flex justify-between items-start pb-3 border-b" style="border-color: var(--border);">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <p class="text-sm font-black text-white" x-text="session.formattedDate"></p>
+              <span x-show="session.rpe" class="badge" :style="'background: ' + accentColor + '20; color: ' + accentColor" x-text="'RPE ' + session.rpe"></span>
+            </div>
+            <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2">
+              <span class="text-[9px] font-black uppercase tracking-wider" :style="'color:' + accentColor" x-text="session.totalSets + ' sets'"></span>
+              <span class="text-[9px] font-black uppercase tracking-wider" style="color:#bf00ff" x-text="formatNum(session.totalVolume) + ' kg'"></span>
+              <span class="text-[9px] font-black uppercase tracking-wider flex items-center gap-1" style="color:#ffa600">
+                <i data-lucide="flame" class="w-3 h-3"></i> <span x-text="session.totalCal + ' kcal'"></span>
+              </span>
+            </div>
+          </div>
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(0,255,136,0.1);">
+            <i data-lucide="check-circle" class="w-4 h-4" style="color:#00ff88"></i>
+          </div>
+        </div>
+        <div class="space-y-3.5 pt-1">
+          <template x-for="ex in session.exercises" :key="ex.exId">
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2">
+                <div class="w-1.5 h-1.5 rounded-full" :style="'background:' + accentColor"></div>
+                <p class="text-xs font-bold text-white/90" x-text="ex.name"></p>
+              </div>
+              <div class="flex flex-wrap gap-1.5 pl-3">
+                <template x-for="(s, i) in ex.sets" :key="s.id">
+                  <div class="px-2 py-1 rounded-md text-[10px] font-bold" :class="s.type === 'warmup' ? 'border-dashed' : ''"
+                       :style="s.type === 'warmup' ? 'background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.15); color: var(--text-mute);' : 'background: ' + accentColor + '12; border: 1px solid ' + accentColor + '30; color:' + accentColor">
+                    <span x-text="s.weight + '×' + s.reps"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+
+<!-- ========== STATS VIEW ========== -->
+<div x-show="view==='stats'" x-cloak class="space-y-4 fade-in">
+  <div class="flex items-center gap-3 px-1 slide-up">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: rgba(0,255,136,0.12); border: 1px solid rgba(0,255,136,0.3);">
+      <i data-lucide="trophy" class="w-4 h-4" style="color:#00ff88"></i>
+    </div>
+    <h2 class="font-display text-[13px] font-black text-white tracking-[0.08em]">STATISTICS</h2>
+  </div>
+
+  <div class="grid grid-cols-2 gap-3 slide-up" style="animation-delay: 0.05s;">
+    <div class="card p-4">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style="background: rgba(255,166,0,0.12);">
+        <i data-lucide="flame" class="w-4 h-4" style="color:#ffa600"></i>
+      </div>
+      <p class="num text-2xl font-black text-white" x-text="totalAllTimeSets"></p>
+      <p class="text-[9px] font-black uppercase tracking-wider mt-1" style="color: var(--text-mute);">Total Sets</p>
+    </div>
+    <div class="card p-4">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style="background: rgba(0,255,136,0.12);">
+        <i data-lucide="trending-up" class="w-4 h-4" style="color:#00ff88"></i>
+      </div>
+      <p class="num text-2xl font-black text-white" x-text="formatNum(totalAllTimeVolume)"></p>
+      <p class="text-[9px] font-black uppercase tracking-wider mt-1" style="color: var(--text-mute);">Volume (kg)</p>
+    </div>
+  </div>
+
+  <!-- WEIGHT TRACKER -->
+  <div class="card p-5 space-y-3 slide-up" style="animation-delay: 0.1s;">
+    <div class="flex items-center justify-between">
+      <p class="label">Pelacak Berat Badan</p>
+      <button @click="logWeight()" class="text-[9px] font-black uppercase tracking-wider" :style="'color:' + accentColor">+ Log BB</button>
+    </div>
+    <div class="flex items-end gap-1.5 h-20">
+      <template x-for="(w, i) in weightHistory.slice(-7)" :key="i">
+        <div class="flex-1 flex flex-col items-center gap-1">
+          <div class="w-full rounded-t transition-all" :style="'height:' + Math.max(4, (w.weight - 50) / 50 * 100) + '%; background: linear-gradient(to top, ' + accentColor + ', #bf00ff); box-shadow: 0 -2px 8px ' + accentColor + '40;'"></div>
+          <span class="num text-[8px] font-bold" style="color: var(--text-mute);" x-text="w.weight"></span>
+        </div>
+      </template>
+      <div x-show="weightHistory.length === 0" class="flex-1 text-center py-4">
+        <p class="text-[10px]" style="color: var(--text-mute);">Belum ada data.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MUSCLE SETS -->
+  <div class="card p-5 space-y-3 slide-up" style="animation-delay: 0.15s;">
+    <div class="flex items-center justify-between">
+      <p class="label">Set per Otot (7 hari)</p>
+      <span class="num text-[10px] font-black" :style="'color:' + accentColor" x-text="weeklyMuscleSetsTotal + ' SET'"></span>
+    </div>
+    <template x-for="(sets, muscle) in weeklyMuscleSets" :key="muscle">
+      <div class="space-y-1.5">
+        <div class="flex justify-between text-[10px] font-bold">
+          <span class="text-white/75 uppercase tracking-wider" x-text="muscle"></span>
+          <span class="num" :style="'color:' + accentColor" x-text="sets"></span>
+        </div>
+        <div class="rounded-full h-1.5 overflow-hidden" style="background: rgba(255,255,255,0.05);">
+          <div class="h-full rounded-full transition-all duration-500" :style="'width:' + Math.min(100, (sets/20)*100) + '%; background: linear-gradient(90deg, ' + accentColor + ', #bf00ff);'"></div>
+        </div>
+      </div>
+    </template>
+    <p x-show="!weeklyMuscleSetsTotal" class="text-center text-xs py-6" style="color: var(--text-mute);">Belum ada data minggu ini.</p>
+  </div>
+
+  <!-- PRs -->
+  <div class="card p-5 space-y-1 slide-up" style="animation-delay: 0.2s;">
+    <p class="label mb-3">🏆 Personal Records</p>
+    <template x-for="pr in allPRs" :key="pr.exId">
+      <div class="flex items-center justify-between py-2 border-b last:border-0" style="border-color: var(--border);">
+        <span class="text-xs font-bold text-white/80" x-text="exerciseName(pr.exId)"></span>
+        <span class="num text-sm font-black" style="color:#ffbe0b" x-text="pr.weight + ' kg'"></span>
+      </div>
+    </template>
+    <p x-show="!allPRs.length" class="text-center text-xs py-6" style="color: var(--text-mute);">Belum ada PR.</p>
+  </div>
+</div>
+
+<!-- ========== SETTINGS VIEW ========== -->
+<div x-show="view==='settings'" x-cloak class="space-y-4 fade-in">
+  <div class="flex items-center gap-3 px-1 slide-up">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center" :style="'background: ' + accentColor + '15; border: 1px solid ' + accentColor + '40;'">
+      <i data-lucide="settings" class="w-4 h-4" :style="'color:' + accentColor"></i>
+    </div>
+    <h2 class="font-display text-[13px] font-black text-white tracking-[0.08em]">SETTINGS</h2>
+  </div>
+
+  <div class="card p-5 space-y-4 slide-up" style="animation-delay: 0.05s;">
+    <div>
+      <p class="label mb-2.5">Warna Tema</p>
+      <div class="flex gap-2.5">
+        <button @click="accentColor = '#00f0ff'; saveSettings()" class="w-9 h-9 rounded-full transition-transform active:scale-90" :style="'background: #00f0ff; border: 2px solid ' + (accentColor === '#00f0ff' ? '#fff' : 'transparent') + '; box-shadow: 0 0 12px rgba(0,240,255,0.5);'"></button>
+        <button @click="accentColor = '#bf00ff'; saveSettings()" class="w-9 h-9 rounded-full transition-transform active:scale-90" :style="'background: #bf00ff; border: 2px solid ' + (accentColor === '#bf00ff' ? '#fff' : 'transparent') + '; box-shadow: 0 0 12px rgba(191,0,255,0.5);'"></button>
+        <button @click="accentColor = '#00ff88'; saveSettings()" class="w-9 h-9 rounded-full transition-transform active:scale-90" :style="'background: #00ff88; border: 2px solid ' + (accentColor === '#00ff88' ? '#fff' : 'transparent') + '; box-shadow: 0 0 12px rgba(0,255,136,0.5);'"></button>
+        <button @click="accentColor = '#ffbe0b'; saveSettings()" class="w-9 h-9 rounded-full transition-transform active:scale-90" :style="'background: #ffbe0b; border: 2px solid ' + (accentColor === '#ffbe0b' ? '#fff' : 'transparent') + '; box-shadow: 0 0 12px rgba(255,190,11,0.5);'"></button>
+      </div>
+    </div>
+    <div>
+      <label class="label block mb-2">Berat Badan (kg)</label>
+      <input type="number" x-model.number="bodyWeight" @change="saveSettings()" class="input w-full py-3.5 px-4 num font-black text-lg">
+    </div>
+    <div>
+      <label class="label block mb-2">Rest Timer (detik)</label>
+      <input type="number" x-model.number="restDuration" @change="saveSettings()" class="input w-full py-3.5 px-4 num font-black text-lg">
+    </div>
+    <div>
+      <label class="label block mb-2">Target Latihan / Minggu</label>
+      <input type="number" x-model.number="weeklyGoal" @change="saveSettings()" class="input w-full py-3.5 px-4 num font-black text-lg">
+    </div>
+  </div>
+
+  <div class="card p-5 space-y-3 slide-up" style="animation-delay: 0.1s;">
+    <p class="label mb-1">Backup & Restore</p>
+    <button @click="exportData()" class="w-full py-3 rounded-xl font-black text-xs uppercase tracking-wider active:scale-[.98] transition flex items-center justify-center gap-2"
+            style="background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.25); color:#00ff88;">
+      <i data-lucide="download" class="w-4 h-4"></i> Export Data
+    </button>
+    <label class="w-full py-3 rounded-xl font-black text-xs uppercase tracking-wider active:scale-[.98] transition flex items-center justify-center gap-2 cursor-pointer"
+           style="background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text-dim);">
+      <i data-lucide="upload" class="w-4 h-4"></i> Import Data
+      <input type="file" accept=".json" @change="importData($event)" class="hidden">
+    </label>
+  </div>
+
+  <div class="card p-5 space-y-3 slide-up" style="animation-delay: 0.15s;">
+    <button @click="resetSession()" class="w-full py-3 rounded-xl font-black text-xs uppercase tracking-wider active:scale-[.98] transition"
+            style="background: rgba(255,80,80,0.08); border: 1px solid rgba(255,80,80,0.25); color:#ff5050;">Reset Sesi</button>
+    <button @click="clearAllData()" class="w-full py-3 rounded-xl font-black text-xs uppercase tracking-wider active:scale-[.98] transition"
+            style="background: rgba(255,80,80,0.08); border: 1px solid rgba(255,80,80,0.25); color:#ff5050;">Hapus Semua</button>
+  </div>
+
+  <div class="text-center py-6 space-y-1.5">
+    <p class="text-[11px] font-black tracking-[0.3em] font-display gradient-text">GYMTRACK</p>
+    <p class="text-[10px] font-black tracking-[0.25em]" style="color: var(--text-dim);">BY ADITNAPIT</p>
+    <p class="text-[9px] mt-1" style="color: var(--text-mute);">Premium Edition · v14.0</p>
+  </div>
+</div>
+
+</main>
+
+<!-- ========== BOTTOM NAV ========== -->
+<nav class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-50">
+  <div class="nav-dock rounded-[22px] p-1.5 flex justify-around items-center">
+    <button @click="view='log'" class="nav-item" :class="view==='log'?'active':''"><i data-lucide="dumbbell" class="w-5 h-5"></i></button>
+    <button @click="view='recommend'" class="nav-item" :class="view==='recommend'?'active':''"><i data-lucide="sparkles" class="w-5 h-5"></i></button>
+    <button @click="view='history'" class="nav-item" :class="view==='history'?'active':''"><i data-lucide="bar-chart-3" class="w-5 h-5"></i></button>
+    <button @click="view='stats'" class="nav-item" :class="view==='stats'?'active':''"><i data-lucide="trophy" class="w-5 h-5"></i></button>
+    <button @click="view='settings'" class="nav-item" :class="view==='settings'?'active':''"><i data-lucide="settings" class="w-5 h-5"></i></button>
+  </div>
+</nav>
+
+<!-- WORKOUT SUMMARY MODAL -->
+<div x-show="showSummary" x-cloak x-transition.opacity class="fixed inset-0 z-[300] flex items-center justify-center px-4 overflow-y-auto" style="background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);">
+  <template x-if="showSummary">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="confetti" style="left:8%;animation-delay:0s"></div>
+      <div class="confetti" style="left:24%;animation-delay:.4s"></div>
+      <div class="confetti" style="left:42%;animation-delay:.9s"></div>
+      <div class="confetti" style="left:58%;animation-delay:.2s"></div>
+      <div class="confetti" style="left:74%;animation-delay:.7s"></div>
+      <div class="confetti" style="left:88%;animation-delay:.5s"></div>
+    </div>
+  </template>
+  <div class="card card-elevated p-6 text-center space-y-4 w-full max-w-sm relative z-10 slide-up my-8">
+    <div class="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center"
+         style="background: linear-gradient(135deg, #00ff88, #00b359); box-shadow: 0 0 40px rgba(0,255,136,0.5), 0 1px 0 rgba(255,255,255,0.3) inset;">
+      <i data-lucide="check" class="w-8 h-8 text-black"></i>
+    </div>
+    <div>
+      <h2 class="font-display text-xl font-black text-white tracking-wider">SESSION COMPLETE</h2>
+      <p class="text-[10px] font-black uppercase tracking-widest mt-1" style="color:#00ff88" x-text="'+ ' + summaryGainedXp + ' XP Gained'"></p>
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <div class="rounded-xl p-2.5" style="background: rgba(255,255,255,0.04); border: 1px solid var(--border);">
+        <p class="text-[8px] font-black uppercase tracking-wider" style="color: var(--text-mute);">Sets</p>
+        <p class="num text-lg font-black text-white mt-1" x-text="summarySets"></p>
+      </div>
+      <div class="rounded-xl p-2.5" style="background: rgba(255,255,255,0.04); border: 1px solid var(--border);">
+        <p class="text-[8px] font-black uppercase tracking-wider" style="color: var(--text-mute);">Volume</p>
+        <p class="num text-lg font-black mt-1" :style="'color:' + accentColor" x-text="formatNum(summaryVolume) + 'kg'"></p>
+      </div>
+      <div class="rounded-xl p-2.5 col-span-2" style="background: rgba(255,166,0,0.06); border: 1px solid rgba(255,166,0,0.2);">
+        <p class="text-[8px] font-black uppercase tracking-wider" style="color: rgba(255,166,0,0.6);">Calories</p>
+        <p class="num text-lg font-black flex items-center justify-center gap-1.5 mt-1" style="color:#ffa600"><i data-lucide="flame" class="w-4 h-4"></i><span x-text="summaryCal + ' kcal'"></span></p>
+      </div>
+    </div>
+    <div class="text-left space-y-2 pt-3 border-t" style="border-color: var(--border);">
+      <p class="text-[10px] font-black uppercase tracking-wider" style="color: var(--text-dim);">Bagaimana Sesi Ini?</p>
+      <div class="flex gap-1.5">
+        <template x-for="r in [6,7,8,9,10]" :key="r">
+          <button @click="sessionRPE = r" class="flex-1 py-2 rounded-lg text-[10px] font-black transition border"
+                  :class="sessionRPE === r ? 'text-black border-transparent' : ''"
+                  :style="sessionRPE === r ? 'background: ' + accentColor + ';' : 'background: rgba(255,255,255,0.04); border-color: var(--border); color: var(--text-dim);'" x-text="r"></button>
+        </template>
+      </div>
+      <p class="text-[9px] italic" style="color: var(--text-mute);" x-text="sessionRPE ? 'RPE ' + sessionRPE + ' — ' + getRPEDesc(sessionRPE) : 'Pilih tingkat kesulitan'"></p>
+    </div>
+    <div x-show="summaryNewPRs.length > 0" class="rounded-xl p-2.5 text-left" style="background: rgba(255,190,11,0.08); border: 1px solid rgba(255,190,11,0.25);">
+      <p class="text-[9px] font-black uppercase tracking-wider mb-1 flex items-center gap-1" style="color:#ffbe0b"><i data-lucide="trophy" class="w-3 h-3"></i> New PRs!</p>
+      <template x-for="pr in summaryNewPRs" :key="pr.exName">
+        <p class="text-[11px] font-bold text-white/90">• <span x-text="pr.exName"></span> (<span x-text="pr.weight"></span>kg)</p>
+      </template>
+    </div>
+    <button @click="confirmFinish()" class="btn-primary w-full py-3">Simpan & Selesai</button>
+  </div>
+</div>
+
+<!-- LEVEL UP -->
+<div x-show="showLevelUp" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-10" x-transition:enter-end="opacity-100 translate-y-0"
+     class="fixed top-10 left-1/2 -translate-x-1/2 z-[400] px-6 py-3 rounded-2xl flex items-center gap-3"
+     style="background: linear-gradient(135deg, #ffbe0b, #ff6b00); color: #000; box-shadow: 0 20px 60px -15px rgba(255,166,0,0.6);">
+  <i data-lucide="star" class="w-6 h-6 animate-spin" style="fill:#000"></i>
+  <div>
+    <p class="text-[9px] font-black uppercase tracking-widest opacity-70">Level Up!</p>
+    <p class="text-lg font-black font-display leading-none">LEVEL <span x-text="level"></span></p>
+  </div>
+</div>
+
+<!-- DEMO MODAL -->
+<div x-show="demoModal.open" x-cloak x-transition.opacity class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center px-4 pb-20 sm:pb-0" style="background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);" @click.self="demoModal.open = false">
+  <div class="card card-elevated w-full max-w-sm max-h-[80vh] overflow-y-auto scrollbar-hide slide-up">
+    <div class="p-5 space-y-4">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h3 class="text-base font-black text-white" x-text="demoModal.name"></h3>
+          <p class="text-[9px] font-bold uppercase tracking-wider mt-1" :style="'color:' + accentColor" x-text="demoModal.muscle + ' · ' + demoModal.equipment"></p>
+        </div>
+        <button @click="demoModal.open = false" class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background: rgba(255,255,255,0.05);">
+          <i data-lucide="x" class="w-4 h-4" style="color: var(--text-dim);"></i>
+        </button>
+      </div>
+      <div class="rounded-2xl overflow-hidden" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border);">
+        <img :src="demoModal.gifUrl" :alt="demoModal.name" class="w-full h-auto">
+      </div>
+      <div class="space-y-2">
+        <p class="label">Instruksi</p>
+        <template x-if="demoModal.instructions?.length">
+          <ol class="space-y-1.5">
+            <template x-for="(step, i) in demoModal.instructions" :key="i">
+              <li class="flex gap-2 text-xs leading-relaxed" style="color: var(--text-dim);">
+                <span class="num font-black flex-shrink-0" :style="'color:' + accentColor" x-text="(i+1) + '.'"></span>
+                <span x-text="step"></span>
+              </li>
+            </template>
+          </ol>
+        </template>
+        <p x-show="!demoModal.instructions?.length" class="text-xs" style="color: var(--text-mute);">Instruksi tidak tersedia.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const GIF_CSV_URL = 'https://cdn.jsdelivr.net/gh/omercotkd/exercises-gifs@main/exercises.csv';
+const GIF_ASSET_BASE = 'https://cdn.jsdelivr.net/gh/omercotkd/exercises-gifs@main/assets/';
+
+function gymApp() {
+  return {
+    view:'log',
+    accentColor: localStorage.getItem('gt_accentColor') || '#00f0ff',
+
+    xp: parseInt(localStorage.getItem('gt_xp') || '0'),
+    streak: parseInt(localStorage.getItem('gt_streak') || '0'),
+    lastWorkoutDate: localStorage.getItem('gt_lastWorkout') || '',
+    weeklyGoal: parseInt(localStorage.getItem('gt_weeklyGoal') || '4'),
+    workoutsThisWeek: JSON.parse(localStorage.getItem('gt_workoutsThisWeek') || '[]'),
+    showLevelUp: false,
+    showSummary: false,
+    summaryGainedXp: 0, summarySets: 0, summaryVolume: 0, summaryCal: 0, summaryNewPRs: [],
+    sessionRPE: 0,
+    dailyQuote: '',
+
+    routines: JSON.parse(localStorage.getItem('gt_routines') || '[]'),
+    weightHistory: JSON.parse(localStorage.getItem('gt_weightHistory') || '[]'),
+    exerciseNotes: JSON.parse(localStorage.getItem('gt_exerciseNotes') || '{}'),
+    favorites: JSON.parse(localStorage.getItem('gt_favorites') || '[]'),
+
+    exercises:[
+      {id:'bench_press',name:'Bench Press',muscle:'Chest',equipment:'Barbell',met:5.0},
+      {id:'incline_bench',name:'Incline Bench Press',muscle:'Chest',equipment:'Barbell',met:5.0},
+      {id:'decline_bench',name:'Decline Bench Press',muscle:'Chest',equipment:'Barbell',met:5.0},
+      {id:'db_press',name:'Dumbbell Press',muscle:'Chest',equipment:'Dumbbell',met:4.0},
+      {id:'incline_db_press',name:'Incline Dumbbell Press',muscle:'Chest',equipment:'Dumbbell',met:4.0},
+      {id:'db_fly',name:'Dumbbell Fly',muscle:'Chest',equipment:'Dumbbell',met:3.5},
+      {id:'cable_fly',name:'Cable Fly',muscle:'Chest',equipment:'Cable',met:3.5},
+      {id:'pec_deck',name:'Pec Deck',muscle:'Chest',equipment:'Machine',met:3.0},
+      {id:'push_up',name:'Push-Up',muscle:'Chest',equipment:'Bodyweight',met:3.5},
+      {id:'dips_chest',name:'Dips (Chest)',muscle:'Chest',equipment:'Bodyweight',met:4.5},
+      {id:'machine_press',name:'Machine Chest Press',muscle:'Chest',equipment:'Machine',met:4.0},
+      {id:'deadlift',name:'Deadlift',muscle:'Back',equipment:'Barbell',met:5.0},
+      {id:'barbell_row',name:'Barbell Row',muscle:'Back',equipment:'Barbell',met:4.5},
+      {id:'tbar_row',name:'T-Bar Row',muscle:'Back',equipment:'Barbell',met:4.5},
+      {id:'lat_pulldown',name:'Lat Pulldown',muscle:'Back',equipment:'Cable',met:3.5},
+      {id:'pull_up',name:'Pull-Up',muscle:'Back',equipment:'Bodyweight',met:5.0},
+      {id:'chin_up',name:'Chin-Up',muscle:'Back',equipment:'Bodyweight',met:5.0},
+      {id:'seated_row',name:'Seated Cable Row',muscle:'Back',equipment:'Cable',met:3.5},
+      {id:'db_row',name:'Dumbbell Row',muscle:'Back',equipment:'Dumbbell',met:3.5},
+      {id:'machine_row',name:'Machine Row',muscle:'Back',equipment:'Machine',met:3.5},
+      {id:'straight_arm_pd',name:'Straight-Arm Pulldown',muscle:'Back',equipment:'Cable',met:3.0},
+      {id:'rack_pull',name:'Rack Pull',muscle:'Back',equipment:'Barbell',met:5.0},
+      {id:'back_ext',name:'Back Extension',muscle:'Back',equipment:'Bodyweight',met:3.5},
+      {id:'squat',name:'Back Squat',muscle:'Legs',equipment:'Barbell',met:5.0},
+      {id:'front_squat',name:'Front Squat',muscle:'Legs',equipment:'Barbell',met:5.0},
+      {id:'goblet_squat',name:'Goblet Squat',muscle:'Legs',equipment:'Dumbbell',met:4.5},
+      {id:'leg_press',name:'Leg Press',muscle:'Legs',equipment:'Machine',met:4.0},
+      {id:'hack_squat',name:'Hack Squat',muscle:'Legs',equipment:'Machine',met:4.5},
+      {id:'rdl',name:'Romanian Deadlift',muscle:'Legs',equipment:'Barbell',met:5.0},
+      {id:'leg_ext',name:'Leg Extension',muscle:'Legs',equipment:'Machine',met:3.5},
+      {id:'leg_curl',name:'Leg Curl',muscle:'Legs',equipment:'Machine',met:3.5},
+      {id:'lunge',name:'Walking Lunge',muscle:'Legs',equipment:'Dumbbell',met:4.5},
+      {id:'bulgarian',name:'Bulgarian Split Squat',muscle:'Legs',equipment:'Dumbbell',met:4.5},
+      {id:'step_up',name:'Step-Up',muscle:'Legs',equipment:'Dumbbell',met:4.0},
+      {id:'hip_thrust',name:'Hip Thrust',muscle:'Legs',equipment:'Barbell',met:4.0},
+      {id:'calf_standing',name:'Calf Raise (Standing)',muscle:'Legs',equipment:'Machine',met:3.0},
+      {id:'calf_seated',name:'Calf Raise (Seated)',muscle:'Legs',equipment:'Machine',met:3.0},
+      {id:'sumo_dl',name:'Sumo Deadlift',muscle:'Legs',equipment:'Barbell',met:5.0},
+      {id:'ohp',name:'Overhead Press',muscle:'Shoulders',equipment:'Barbell',met:4.5},
+      {id:'push_press',name:'Push Press',muscle:'Shoulders',equipment:'Barbell',met:5.0},
+      {id:'db_shoulder_press',name:'Dumbbell Shoulder Press',muscle:'Shoulders',equipment:'Dumbbell',met:4.0},
+      {id:'arnold_press',name:'Arnold Press',muscle:'Shoulders',equipment:'Dumbbell',met:4.0},
+      {id:'lateral_raise',name:'Lateral Raise',muscle:'Shoulders',equipment:'Dumbbell',met:3.0},
+      {id:'rear_delt_fly',name:'Rear Delt Fly',muscle:'Shoulders',equipment:'Dumbbell',met:3.0},
+      {id:'front_raise',name:'Front Raise',muscle:'Shoulders',equipment:'Dumbbell',met:3.0},
+      {id:'face_pull',name:'Face Pull',muscle:'Shoulders',equipment:'Cable',met:3.5},
+      {id:'upright_row',name:'Upright Row',muscle:'Shoulders',equipment:'Barbell',met:3.5},
+      {id:'reverse_pec',name:'Reverse Pec Deck',muscle:'Shoulders',equipment:'Machine',met:3.0},
+      {id:'barbell_curl',name:'Barbell Curl',muscle:'Biceps',equipment:'Barbell',met:3.5},
+      {id:'ezbar_curl',name:'EZ-Bar Curl',muscle:'Biceps',equipment:'EZ-Bar',met:3.5},
+      {id:'db_curl',name:'Dumbbell Curl',muscle:'Biceps',equipment:'Dumbbell',met:3.5},
+      {id:'hammer_curl',name:'Hammer Curl',muscle:'Biceps',equipment:'Dumbbell',met:3.5},
+      {id:'preacher_curl',name:'Preacher Curl',muscle:'Biceps',equipment:'Machine',met:3.5},
+      {id:'concentration_curl',name:'Concentration Curl',muscle:'Biceps',equipment:'Dumbbell',met:3.0},
+      {id:'cable_curl',name:'Cable Curl',muscle:'Biceps',equipment:'Cable',met:3.5},
+      {id:'incline_curl',name:'Incline Dumbbell Curl',muscle:'Biceps',equipment:'Dumbbell',met:3.5},
+      {id:'cgbp',name:'Close-Grip Bench Press',muscle:'Triceps',equipment:'Barbell',met:4.5},
+      {id:'tricep_pushdown',name:'Triceps Pushdown',muscle:'Triceps',equipment:'Cable',met:3.5},
+      {id:'overhead_ext',name:'Overhead Triceps Extension',muscle:'Triceps',equipment:'Cable',met:3.5},
+      {id:'skull_crusher',name:'Skull Crusher',muscle:'Triceps',equipment:'EZ-Bar',met:3.5},
+      {id:'dips_tricep',name:'Dips (Triceps)',muscle:'Triceps',equipment:'Bodyweight',met:4.0},
+      {id:'kickback',name:'Triceps Kickback',muscle:'Triceps',equipment:'Dumbbell',met:3.0},
+      {id:'diamond_pushup',name:'Diamond Push-Up',muscle:'Triceps',equipment:'Bodyweight',met:4.0},
+      {id:'crunch',name:'Crunch',muscle:'Core',equipment:'Bodyweight',met:3.0},
+      {id:'sit_up',name:'Sit-Up',muscle:'Core',equipment:'Bodyweight',met:3.5},
+      {id:'plank',name:'Plank',muscle:'Core',equipment:'Bodyweight',met:3.0},
+      {id:'side_plank',name:'Side Plank',muscle:'Core',equipment:'Bodyweight',met:3.0},
+      {id:'hanging_lr',name:'Hanging Leg Raise',muscle:'Core',equipment:'Bodyweight',met:4.0},
+      {id:'lying_lr',name:'Lying Leg Raise',muscle:'Core',equipment:'Bodyweight',met:3.5},
+      {id:'cable_crunch',name:'Cable Crunch',muscle:'Core',equipment:'Cable',met:3.5},
+      {id:'russian_twist',name:'Russian Twist',muscle:'Core',equipment:'Bodyweight',met:3.5},
+      {id:'ab_wheel',name:'Ab Wheel Rollout',muscle:'Core',equipment:'Wheel',met:4.0},
+      {id:'pallof_press',name:'Pallof Press',muscle:'Core',equipment:'Cable',met:3.0},
+      {id:'mountain_climber',name:'Mountain Climber',muscle:'Core',equipment:'Bodyweight',met:5.0},
+      {id:'barbell_shrug',name:'Barbell Shrug',muscle:'Traps',equipment:'Barbell',met:3.5},
+      {id:'db_shrug',name:'Dumbbell Shrug',muscle:'Traps',equipment:'Dumbbell',met:3.5},
+      {id:'farmer_carry',name:"Farmer's Carry",muscle:'Traps',equipment:'Dumbbell',met:5.0},
+      {id:'power_clean',name:'Power Clean',muscle:'Olympic',equipment:'Barbell',met:6.0},
+      {id:'clean_jerk',name:'Clean & Jerk',muscle:'Olympic',equipment:'Barbell',met:6.5},
+      {id:'snatch',name:'Snatch',muscle:'Olympic',equipment:'Barbell',met:6.5},
+      {id:'burpee',name:'Burpee',muscle:'Full Body',equipment:'Bodyweight',met:8.0},
+      {id:'thruster',name:'Thruster',muscle:'Full Body',equipment:'Barbell',met:6.5},
+      {id:'kb_swing',name:'Kettlebell Swing',muscle:'Full Body',equipment:'Kettlebell',met:6.0},
+      {id:'tgu',name:'Turkish Get-Up',muscle:'Full Body',equipment:'Kettlebell',met:4.5},
+      {id:'treadmill_run',name:'Treadmill Run',muscle:'Cardio',equipment:'Machine',met:8.5},
+      {id:'treadmill_walk',name:'Treadmill Walk',muscle:'Cardio',equipment:'Machine',met:3.5},
+      {id:'bike',name:'Stationary Bike',muscle:'Cardio',equipment:'Machine',met:6.0},
+      {id:'rowing',name:'Rowing Machine',muscle:'Cardio',equipment:'Machine',met:7.0},
+      {id:'jump_rope',name:'Jump Rope',muscle:'Cardio',equipment:'Bodyweight',met:10.0},
+      {id:'elliptical',name:'Elliptical',muscle:'Cardio',equipment:'Machine',met:5.0},
+      {id:'stair_climber',name:'Stair Climber',muscle:'Cardio',equipment:'Machine',met:8.0},
+    ],
+
+    recMuscles:['All','Chest','Back','Legs','Shoulders','Biceps','Triceps','Core','Full Body','Cardio'],
+
+    qEx:'', muscleFilter:'All',
+    activeEx:null,
+    ex_reps:'', ex_weight:'', ex_setType:'working',
+
+    recInputs: { muscle: 'Chest', calTarget: 400, equipment: 'with_equipment' },
+    recommendation: [],
+    recStats: { totalSets: 0, totalCal: 0, estTime: 0, warning: '' },
+
+    sessionLogs: JSON.parse(localStorage.getItem('gt_session') || '[]'),
+    sessionStart: JSON.parse(localStorage.getItem('gt_sessionStart') || 'null'),
+    allLogs: JSON.parse(localStorage.getItem('gt_allLogs') || '[]'),
+    bodyWeight: parseFloat(localStorage.getItem('gt_bodyWeight') || '70'),
+    restDuration: parseInt(localStorage.getItem('gt_restDuration') || '90'),
+    now: Date.now(),
+
+    restTimer:{ active:false, seconds:90, display:'1:30' },
+    demoModal:{ open:false, name:'', muscle:'', equipment:'', gifUrl:'', instructions:[] },
+    gifMap:{}, gifLoaded:false,
+
+    getAccentStyle() {
+      const c = this.accentColor;
+      return `--accent: ${c}; --accent-glow: ${c}55; --accent-soft: ${c}20;`;
+    },
+
+    get level() { return Math.floor(Math.sqrt(this.xp / 100)) + 1; },
+    get xpForCurrentLevel() { return Math.pow(this.level - 1, 2) * 100; },
+    get xpForNextLevel() { return Math.pow(this.level, 2) * 100; },
+    get xpProgress() {
+      const diff = this.xpForNextLevel - this.xpForCurrentLevel;
+      const current = this.xp - this.xpForCurrentLevel;
+      return (current / diff) * 100;
+    },
+    get weeklyCompleted() {
+      const now = Date.now();
+      return this.workoutsThisWeek.filter(t => (now - t) < 7 * 864e5).length;
+    },
+    get lastSetForActiveEx() {
+      if (!this.activeEx) return null;
+      const sets = this.sessionLogs.filter(l => l.exId === this.activeEx.id);
+      return sets.length > 0 ? sets[sets.length - 1] : null;
+    },
+    get muscleRecovery() {
+      const map = {};
+      this.allLogs.filter(l => l.type !== 'warmup').forEach(l => {
+        const ex = this.exercises.find(e => e.id === l.exId);
+        if (!ex) return;
+        const daysAgo = Math.floor((new Date().setHours(0,0,0,0) - new Date(l.date).setHours(0,0,0,0)) / 864e5);
+        if (map[ex.muscle] === undefined || daysAgo < map[ex.muscle]) map[ex.muscle] = daysAgo;
+      });
+      return map;
+    },
+    getRecoveryLabel(days) {
+      if (days === undefined) return '';
+      if (days === 0) return 'REST';
+      if (days <= 2) return 'RECOVER';
+      return 'READY';
+    },
+    getRecoveryClass(days) {
+      if (days === undefined) return '';
+      if (days === 0) return 'bg-red-500/15 text-red-400';
+      if (days <= 2) return 'bg-amber-500/15 text-amber-400';
+      return 'bg-emerald-500/15 text-emerald-400';
+    },
+    get recentExercises() {
+      const seen = new Set(); const recent = [];
+      const sorted = [...this.allLogs].sort((a,b) => b.id - a.id);
+      for (const l of sorted) {
+        if (!seen.has(l.exId) && l.type !== 'warmup') {
+          seen.add(l.exId);
+          const ex = this.exercises.find(e => e.id === l.exId);
+          if (ex) recent.push(ex);
+          if (recent.length >= 5) break;
+        }
+      }
+      return recent;
+    },
+    getLastPerformance(exId) {
+      if (!exId) return null;
+      const sets = this.allLogs.filter(l => l.exId === exId && l.type !== 'warmup');
+      if (!sets.length) return null;
+      const best = sets.reduce((a, b) => b.weight > a.weight ? b : a);
+      const daysAgo = Math.floor((new Date().setHours(0,0,0,0) - new Date(best.date).setHours(0,0,0,0)) / 864e5);
+      return { weight: best.weight, reps: best.reps, daysAgo };
+    },
+    getProgressiveOverload(exId) {
+      const last = this.getLastPerformance(exId);
+      if (!last) return 'Mulai!';
+      if (last.reps >= 10) {
+        const suggested = Math.round((last.weight * 1.025) / 2.5) * 2.5;
+        return suggested + 'kg × 8';
+      }
+      return last.weight + 'kg × ' + (last.reps + 1);
+    },
+    isFavorite(exId) { return this.favorites.includes(exId); },
+    toggleFavorite(exId) {
+      if (this.isFavorite(exId)) this.favorites = this.favorites.filter(id => id !== exId);
+      else this.favorites.push(exId);
+      localStorage.setItem('gt_favorites', JSON.stringify(this.favorites));
+    },
+    get filteredExercises(){
+      let list = this.exercises;
+      if(this.muscleFilter === 'Favorites') list = list.filter(e => this.isFavorite(e.id));
+      else if(this.muscleFilter !== 'All') list = list.filter(e => e.muscle === this.muscleFilter);
+      if(this.qEx){
+        const q = this.qEx.toLowerCase();
+        list = list.filter(e => e.name.toLowerCase().includes(q) || e.muscle.toLowerCase().includes(q));
+      }
+      return list.map(e => {
+        let g = this.lookupGif(e.name);
+        return { ...e, gifUrl: g?.gifUrl || '', instructions: g?.instructions || [], imageError: false, note: this.exerciseNotes[e.id] || '' };
+      });
+    },
+    get sessionByExercise(){
+      const map = {};
+      this.sessionLogs.forEach(l => {
+        if(!map[l.exId]) map[l.exId] = { name:l.exName, sets:[] };
+        map[l.exId].sets.push(l);
+      });
+      return map;
+    },
+    get sessionSets(){ return this.sessionLogs.filter(l => l.type !== 'warmup').length; },
+    get sessionVolume(){ return this.sessionLogs.filter(l => l.type !== 'warmup').reduce((a,l)=>a+l.weight*l.reps, 0); },
+    get sessionCal(){ return this.sessionLogs.reduce((a,l)=>a+this.calPerSet(l), 0); },
+    get sessionDurationLabel(){
+      if(!this.sessionStart) return '0m';
+      const m = Math.floor((this.now - this.sessionStart) / 60000);
+      return m < 60 ? m + 'm' : Math.floor(m/60) + 'h ' + (m%60) + 'm';
+    },
+    get weeklyMuscleSets(){
+      const cutoff = new Date(Date.now() - 7*864e5).toISOString().slice(0,10);
+      const map = {};
+      this.allLogs.filter(l => l.date >= cutoff && l.type !== 'warmup').forEach(l => {
+        const ex = this.exercises.find(e => e.id === l.exId);
+        if(ex) map[ex.muscle] = (map[ex.muscle] || 0) + 1;
+      });
+      return map;
+    },
+    get weeklyMuscleSetsTotal(){ return Object.values(this.weeklyMuscleSets).reduce((a,b)=>a+b,0); },
+    get allPRs(){
+      const map = {};
+      this.allLogs.filter(l => l.type !== 'warmup').forEach(l => {
+        if(!map[l.exId] || l.weight > map[l.exId].weight) map[l.exId] = { exId:l.exId, weight:l.weight };
+      });
+      return Object.values(map).sort((a,b)=>b.weight-a.weight).slice(0,15);
+    },
+    get totalAllTimeSets(){ return this.allLogs.filter(l => l.type !== 'warmup').length; },
+    get totalAllTimeVolume(){ return this.allLogs.filter(l => l.type !== 'warmup').reduce((a,l)=>a+l.weight*l.reps, 0); },
+    get historyFeed() {
+      const grouped = {};
+      this.allLogs.forEach(log => {
+        if (!grouped[log.date]) grouped[log.date] = {};
+        if (!grouped[log.date][log.exId]) grouped[log.date][log.exId] = { exId: log.exId, name: log.exName, sets: [] };
+        grouped[log.date][log.exId].sets.push(log);
+      });
+      return Object.keys(grouped).sort((a, b) => b.localeCompare(a)).map(date => {
+        const exercises = Object.values(grouped[date]);
+        exercises.forEach(ex => ex.sets.sort((a, b) => a.id - b.id));
+        let totalSets = 0, totalVolume = 0, totalCal = 0;
+        exercises.forEach(ex => {
+          ex.sets.forEach(s => {
+            totalCal += this.calPerSet(s);
+            if (s.type !== 'warmup') { totalSets++; totalVolume += s.weight * s.reps; }
+          });
+        });
+        const sessRpe = JSON.parse(localStorage.getItem('gt_sessionRPEs') || '{}')[date] || 0;
+        return { date, formattedDate: new Date(date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }), exercises, totalSets, totalVolume, totalCal, rpe: sessRpe };
+      });
+    },
+
+    init(){
+      lucide.createIcons();
+      const quotes = [
+        "Satu-satunya latihan yang buruk adalah yang tidak kamu lakukan.",
+        "Rasa sakit hari ini adalah kekuatanmu di masa depan.",
+        "Jangan berhenti saat lelah, berhentilah saat selesai.",
+        "Tubuhmu bisa menanggung hampir segalanya.",
+        "Disiplin mengalahkan motivasi.",
+        "Keringat di gym hari ini adalah senyum di pantai nanti.",
+        "Angkat beban, bukan ego.",
+        "Konsistensi adalah kunci."
+      ];
+      this.dailyQuote = quotes[new Date().getDate() % quotes.length];
+      this.checkStreak();
+      if(this.sessionStart){
+        const startDay = new Date(this.sessionStart).toDateString();
+        const today = new Date().toDateString();
+        if(startDay !== today){
+          this.sessionLogs = [];
+          this.sessionStart = Date.now();
+          localStorage.setItem('gt_session','[]');
+          localStorage.setItem('gt_sessionStart', JSON.stringify(this.sessionStart));
+        }
+      } else {
+        this.sessionStart = Date.now();
+        localStorage.setItem('gt_sessionStart', JSON.stringify(this.sessionStart));
+      }
+      this.$watch('view', () => setTimeout(() => lucide.createIcons(), 50));
+      this.$watch('sessionLogs', () => setTimeout(() => lucide.createIcons(), 50), {deep:true});
+      this.$watch('activeEx', () => setTimeout(() => lucide.createIcons(), 50));
+      this.$watch('recommendation', () => setTimeout(() => lucide.createIcons(), 50));
+      this.$watch('showSummary', (val) => { if(val) setTimeout(() => lucide.createIcons(), 50); });
+      this.$watch('muscleFilter', () => setTimeout(() => lucide.createIcons(), 50));
+      this.loadGifs();
+      setInterval(() => {
+        this.now = Date.now();
+        if(this.restTimer.active && this.restTimer.seconds > 0){
+          this.restTimer.seconds--;
+          this.updateRestDisplay();
+          if(this.restTimer.seconds === 0){
+            this.restTimer.active = false;
+            this.playBeep();
+            if(navigator.vibrate) navigator.vibrate([200,100,200]);
+          }
+        }
+      }, 1000);
+    },
+
+    getRPEDesc(rpe) {
+      const desc = {6:'Very Easy', 7:'Easy', 8:'Moderate', 9:'Hard', 10:'Max Effort'};
+      return desc[rpe] || '';
+    },
+    playBeep() {
+      try {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        const ctx = new AC();
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine'; osc.frequency.setValueAtTime(880, ctx.currentTime);
+        gain.gain.setValueAtTime(1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+        osc.start(); osc.stop(ctx.currentTime + 0.5);
+      } catch(e) {}
+    },
+    plateCalculator(weight) {
+      const w = parseFloat(weight);
+      if (!w || w <= 20) return 'Bar (20kg)';
+      let perSide = (w - 20) / 2;
+      const plates = [25, 20, 15, 10, 5, 2.5, 1.25];
+      let res = [];
+      for (let p of plates) {
+        const count = Math.floor(perSide / p);
+        if (count > 0) { res.push(count + '×' + p); perSide -= count * p; }
+      }
+      if (perSide > 0) res.push('+' + perSide.toFixed(1));
+      return res.length ? res.join(' + ') : 'Bar';
+    },
+    editNote(ex) {
+      const current = this.exerciseNotes[ex.id] || '';
+      const note = prompt('Catatan untuk ' + ex.name + ':', current);
+      if (note !== null) {
+        if (note.trim() === '') delete this.exerciseNotes[ex.id];
+        else this.exerciseNotes[ex.id] = note;
+        localStorage.setItem('gt_exerciseNotes', JSON.stringify(this.exerciseNotes));
+        this.activeEx = { ...this.activeEx, note: note };
+      }
+    },
+    generateWarmup() {
+      if (!this.activeEx || !this.ex_weight || this.ex_weight <= 20) return;
+      const w = parseFloat(this.ex_weight);
+      const warmups = [
+        { weight: Math.round(w * 0.5 / 2.5) * 2.5, reps: 10 },
+        { weight: Math.round(w * 0.7 / 2.5) * 2.5, reps: 5 },
+        { weight: Math.round(w * 0.9 / 2.5) * 2.5, reps: 2 }
+      ].filter(wu => wu.weight > 0 && wu.weight < w);
+      warmups.forEach(wu => {
+        this.sessionLogs.push({ id: Date.now() + Math.random(), exId: this.activeEx.id, exName: this.activeEx.name, reps: wu.reps, weight: wu.weight, type: 'warmup', date: new Date().toISOString().slice(0,10) });
+      });
+      this.saveSession();
+    },
+    repeatLastSet() {
+      const last = this.lastSetForActiveEx;
+      if (last) { this.ex_weight = last.weight.toString(); this.ex_reps = last.reps.toString(); }
+    },
+    saveRoutinePrompt() {
+      if (this.sessionLogs.length === 0) return;
+      const name = prompt('Nama rutinitas:');
+      if (!name) return;
+      const grouped = {};
+      this.sessionLogs.forEach(l => {
+        if (!grouped[l.exId]) grouped[l.exId] = { id: l.exId, name: l.exName, sets: 0 };
+        grouped[l.exId].sets++;
+      });
+      this.routines.push({ name, exercises: Object.values(grouped) });
+      localStorage.setItem('gt_routines', JSON.stringify(this.routines));
+    },
+    loadRoutine(routine) {
+      if (!confirm('Muat rutinitas ini?')) return;
+      this.sessionLogs = [];
+      routine.exercises.forEach(ex => {
+        for(let i=0; i<ex.sets; i++){
+          this.sessionLogs.push({
+            id: Date.now() + Math.random(), exId: ex.id, exName: ex.name, reps: 10,
+            weight: this.suggestWeight({id: ex.id, equipment: 'Barbell'}), type: 'working', date: new Date().toISOString().slice(0,10)
+          });
+        }
+      });
+      this.saveSession();
+    },
+    logWeight() {
+      const w = prompt('Berat badan hari ini (kg):');
+      if (!w || isNaN(w)) return;
+      this.weightHistory.push({ date: new Date().toISOString().slice(0,10), weight: parseFloat(w) });
+      localStorage.setItem('gt_weightHistory', JSON.stringify(this.weightHistory));
+      this.bodyWeight = parseFloat(w);
+      this.saveSettings();
+    },
+    exportData() {
+      const data = { xp: this.xp, streak: this.streak, lastWorkoutDate: this.lastWorkoutDate, allLogs: this.allLogs, routines: this.routines, weightHistory: this.weightHistory, bodyWeight: this.bodyWeight, restDuration: this.restDuration, weeklyGoal: this.weeklyGoal, accentColor: this.accentColor, exerciseNotes: this.exerciseNotes, favorites: this.favorites };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url;
+      a.download = `gymtrack-by-aditnapit_${new Date().toISOString().slice(0,10)}.json`;
+      a.click(); URL.revokeObjectURL(url);
+    },
+    importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data.allLogs) throw new Error('Format salah');
+          ['xp','streak','lastWorkoutDate','bodyWeight','restDuration','weeklyGoal','accentColor'].forEach(k => {
+            const v = data[k]; if(v !== undefined) localStorage.setItem('gt_' + k, v);
+          });
+          ['allLogs','routines','weightHistory','exerciseNotes','favorites'].forEach(k => {
+            localStorage.setItem('gt_' + k, JSON.stringify(data[k] || (k === 'exerciseNotes' ? {} : [])));
+          });
+          alert('Data berhasil di-import!');
+          location.reload();
+        } catch (err) { alert('File backup tidak valid!'); }
+      };
+      reader.readAsText(file);
+    },
+    generateRecommendation() {
+      const { muscle, calTarget, equipment } = this.recInputs;
+      let pool = [...this.exercises];
+      if (muscle !== 'All') pool = pool.filter(e => e.muscle === muscle);
+      if (equipment === 'bodyweight') pool = pool.filter(e => e.equipment === 'Bodyweight');
+      else if (equipment === 'with_equipment') pool = pool.filter(e => e.equipment !== 'Bodyweight');
+
+      if (pool.length === 0) {
+        this.recommendation = [];
+        this.recStats = { totalSets: 0, totalCal: 0, estTime: 0, warning: 'Tidak ada latihan yang cocok.' };
+        return;
+      }
+      const calPerSet = (ex) => {
+        const met = ex.met || 3.5;
+        if (ex.muscle === 'Cardio') return met * this.bodyWeight * (10 / 60);
+        return met * this.bodyWeight * (40 + this.restDuration * 0.6) / 3600;
+      };
+      const weightedPick = (arr, n) => {
+        const picks = []; const avail = [...arr];
+        while (picks.length < n && avail.length > 0) {
+          const weights = avail.map(e => Math.pow(e.met || 3.5, 2));
+          const total = weights.reduce((a, b) => a + b, 0);
+          let rand = Math.random() * total; let idx = 0;
+          for (let i = 0; i < avail.length; i++) { rand -= weights[i]; if (rand <= 0) { idx = i; break; } }
+          picks.push(avail.splice(idx, 1)[0]);
+        }
+        return picks;
+      };
+      let numExercises = 4;
+      if (calTarget > 250) numExercises = 5;
+      if (calTarget > 400) numExercises = 6;
+      if (calTarget > 600) numExercises = 7;
+      if (calTarget > 750) numExercises = 8;
+      numExercises = Math.min(numExercises, pool.length);
+      const selected = weightedPick(pool, numExercises);
+      const weightExes = selected.filter(e => e.muscle !== 'Cardio');
+      const cardioExes = selected.filter(e => e.muscle === 'Cardio');
+      let avgWeightCal = weightExes.length > 0 ? weightExes.reduce((a, e) => a + calPerSet(e), 0) / weightExes.length : 0;
+      let cardioCalTotal = 0;
+      let cardioRecommendations = cardioExes.map(ex => {
+          const share = calTarget / selected.length;
+          const calPerMin = (ex.met * 3.5 * this.bodyWeight) / 200;
+          const mins = Math.max(5, Math.ceil(share / calPerMin));
+          cardioCalTotal += calPerSet(ex) * (mins / 10);
+          return { exercise: { ...ex, gifUrl: this.lookupGif(ex.name)?.gifUrl || '' }, sets: mins, reps: 'mins', weight: 0 };
+      });
+      let remainingCal = calTarget - cardioCalTotal;
+      let totalSetsNeeded = weightExes.length > 0 ? Math.ceil(remainingCal / avgWeightCal) : 0;
+      let setsPerEx = weightExes.length > 0 ? Math.ceil(totalSetsNeeded / weightExes.length) : 0;
+      setsPerEx = Math.min(setsPerEx, 15);
+      let reps = 8;
+      if (setsPerEx > 4) reps = 10;
+      if (setsPerEx > 6) reps = 12;
+      if (setsPerEx > 8) reps = 15;
+      let weightRecommendations = weightExes.map(ex => ({
+          exercise: { ...ex, gifUrl: this.lookupGif(ex.name)?.gifUrl || '' },
+          sets: setsPerEx, reps: reps, weight: this.suggestWeight(ex)
+      }));
+      this.recommendation = [...weightRecommendations, ...cardioRecommendations];
+      const totalSets = this.recommendation.reduce((a, r) => a + (r.reps === 'mins' ? 1 : r.sets), 0);
+      const totalCal = Math.round(this.recommendation.reduce((a, r) => a + (r.reps === 'mins' ? (r.exercise.met * this.bodyWeight * (r.sets / 60)) : (calPerSet(r.exercise) * r.sets)), 0));
+      const estTime = Math.round(this.recommendation.reduce((a, r) => a + (r.reps === 'mins' ? r.sets : r.sets * (40 + this.restDuration) / 60), 0));
+      this.recStats = { totalSets, totalCal, estTime, warning: totalCal < calTarget * 0.9 ? 'Tambahkan cardio mandiri untuk membakar sisa kalori.' : '' };
+    },
+    suggestWeight(ex) {
+      const pr = this.prFor(ex.id);
+      if (pr > 0) return Math.round(pr * 0.85 * 2) / 2;
+      if (ex.equipment === 'Bodyweight' || ex.muscle === 'Cardio') return 0;
+      const bw = this.bodyWeight;
+      const compoundIds = ['bench_press','squat','deadlift','barbell_row','ohp','front_squat','rdl','sumo_dl','clean_jerk','snatch','power_clean','push_press'];
+      const isolationIds = ['lateral_raise','rear_delt_fly','front_raise','db_curl','hammer_curl','concentration_curl','incline_curl','kickback'];
+      if (ex.equipment === 'Barbell') return compoundIds.includes(ex.id) ? Math.round(bw * 0.55) : Math.round(bw * 0.25);
+      if (ex.equipment === 'Dumbbell') return isolationIds.includes(ex.id) ? Math.max(2, Math.round(bw * 0.1)) : Math.round(bw * 0.2);
+      if (ex.equipment === 'Cable') return Math.round(bw * 0.3);
+      if (ex.equipment === 'Machine') return Math.round(bw * 0.35);
+      if (ex.equipment === 'EZ-Bar') return Math.round(bw * 0.2);
+      if (ex.equipment === 'Kettlebell') return Math.round(bw * 0.2);
+      return Math.round(bw * 0.25);
+    },
+    startRecommendedExercise(rec) {
+      this.activeEx = { ...rec.exercise, imageError: false };
+      this.ex_weight = rec.weight > 0 ? rec.weight.toString() : '0';
+      this.ex_reps = rec.reps === 'mins' ? rec.sets.toString() : rec.reps.toString();
+      this.ex_setType = 'working';
+      this.view = 'log';
+      setTimeout(() => lucide.createIcons(), 50);
+    },
+    addXp(amount) {
+      const oldLevel = this.level;
+      this.xp += amount;
+      localStorage.setItem('gt_xp', this.xp);
+      if(this.level > oldLevel) {
+        this.showLevelUp = true;
+        setTimeout(() => this.showLevelUp = false, 3000);
+        if(navigator.vibrate) navigator.vibrate([100,50,100,50,200]);
+      }
+    },
+    checkStreak() {
+      if(!this.lastWorkoutDate) return;
+      const today = new Date().setHours(0,0,0,0);
+      const lastWorkout = new Date(this.lastWorkoutDate).setHours(0,0,0,0);
+      if(Math.floor((today - lastWorkout) / 864e5) > 1) { this.streak = 0; localStorage.setItem('gt_streak', 0); }
+    },
+    finishWorkout() {
+      if(this.sessionLogs.length === 0) return;
+      this.summarySets = this.sessionSets;
+      this.summaryVolume = this.sessionVolume;
+      this.summaryCal = this.sessionCal;
+      this.sessionRPE = 0;
+      let xpGained = this.sessionSets * 10;
+      let newPRs = [];
+      const mapSets = {};
+      this.sessionLogs.filter(l => l.type !== 'warmup').forEach(l => {
+        if(!mapSets[l.exId] || l.weight > mapSets[l.exId].weight) mapSets[l.exId] = l;
+      });
+      Object.values(mapSets).forEach(l => {
+        const oldPR = this.allLogs.filter(hist => hist.exId === l.exId && hist.type !== 'warmup' && !this.sessionLogs.some(s => s.id === hist.id)).reduce((max, hist) => Math.max(max, hist.weight), 0);
+        if(l.weight > oldPR && l.weight > 0) { xpGained += 100; newPRs.push({ exName: l.exName, weight: l.weight }); }
+      });
+      this.summaryNewPRs = newPRs;
+      this.summaryGainedXp = xpGained;
+      this.addXp(xpGained);
+      const todayStr = new Date().toISOString().slice(0,10);
+      if(this.lastWorkoutDate !== todayStr) {
+        const today = new Date().setHours(0,0,0,0);
+        const lastWorkout = this.lastWorkoutDate ? new Date(this.lastWorkoutDate).setHours(0,0,0,0) : 0;
+        const diffDays = Math.floor((today - lastWorkout) / 864e5);
+        if(diffDays === 1 || !this.lastWorkoutDate) this.streak += 1;
+        else if(diffDays > 1) this.streak = 1;
+        this.lastWorkoutDate = todayStr;
+        localStorage.setItem('gt_streak', this.streak);
+        localStorage.setItem('gt_lastWorkout', todayStr);
+      }
+      this.workoutsThisWeek.push(Date.now());
+      this.workoutsThisWeek = this.workoutsThisWeek.filter(t => (Date.now() - t) < 7 * 864e5);
+      localStorage.setItem('gt_workoutsThisWeek', JSON.stringify(this.workoutsThisWeek));
+      this.showSummary = true;
+    },
+    confirmFinish() {
+      if (this.sessionRPE > 0) {
+        const rpes = JSON.parse(localStorage.getItem('gt_sessionRPEs') || '{}');
+        const today = new Date().toISOString().slice(0,10);
+        rpes[today] = this.sessionRPE;
+        localStorage.setItem('gt_sessionRPEs', JSON.stringify(rpes));
+      }
+      this.showSummary = false;
+      this.resetSession();
+    },
+    resetSession(){
+      this.sessionLogs = [];
+      this.activeEx = null;
+      this.sessionStart = Date.now();
+      localStorage.setItem('gt_session', '[]');
+      localStorage.setItem('gt_sessionStart', JSON.stringify(this.sessionStart));
+      this.showSummary = false;
+    },
+    clearAllData(){
+      if(!confirm('Hapus SEMUA data? Tidak dapat dibatalkan.')) return;
+      localStorage.clear();
+      location.reload();
+    },
+    async loadGifs(){
+      try {
+        const res = await fetch(GIF_CSV_URL);
+        if(!res.ok) throw new Error('Failed');
+        const text = await res.text();
+        const rows = this.parseCSV(text);
+        const map = {};
+        rows.forEach(r => {
+          if(!r.id || !r.name) return;
+          const norm = this.normalizeName(r.name);
+          map[norm] = { id: r.id, gifUrl: GIF_ASSET_BASE + r.id + '.gif', instructions: this.extractInstructions(r) };
+        });
+        this.gifMap = map;
+        this.gifLoaded = true;
+        setTimeout(() => lucide.createIcons(), 100);
+      } catch (e) { this.gifLoaded = true; }
+    },
+    parseCSV(text){
+      const lines = text.split('\n').filter(l => l.trim());
+      if(lines.length < 2) return [];
+      const headers = this.parseCSVLine(lines[0]);
+      return lines.slice(1).map(line => {
+        const cols = this.parseCSVLine(line); const obj = {};
+        headers.forEach((h, i) => obj[h] = cols[i] || '');
+        return obj;
+      });
+    },
+    parseCSVLine(line){
+      const result = []; let cur = '', inQuotes = false;
+      for(let i = 0; i < line.length; i++){
+        const ch = line[i];
+        if(ch === '"'){ if(inQuotes && line[i+1] === '"'){ cur += '"'; i++; } else inQuotes = !inQuotes; }
+        else if(ch === ',' && !inQuotes){ result.push(cur); cur = ''; }
+        else cur += ch;
+      }
+      result.push(cur); return result;
+    },
+    extractInstructions(row){
+      const steps = [];
+      for(let i = 0; i < 15; i++){
+        const key = 'instructions/' + i;
+        if(row[key] && row[key].trim()) steps.push(row[key].trim());
+      }
+      return steps;
+    },
+    normalizeName(name){ return name.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim(); },
+    lookupGif(exName){
+      if(!this.gifLoaded) return null;
+      const norm = this.normalizeName(exName);
+      if(this.gifMap[norm]) return this.gifMap[norm];
+      const tokens = norm.split(' ').filter(t => t.length > 2);
+      let best = null, bestScore = 0;
+      for(const [k, v] of Object.entries(this.gifMap)){
+        const kTokens = k.split(' ').filter(t => t.length > 2);
+        let score = 0;
+        tokens.forEach(t => { if(kTokens.includes(t)) score += 2; });
+        if(k.startsWith(norm) || norm.startsWith(k)) score += 3;
+        if(score > bestScore){ bestScore = score; best = v; }
+      }
+      return bestScore >= 2 ? best : null;
+    },
+    openDemo(ex){
+      const g = this.lookupGif(ex.name);
+      if(!g) return;
+      this.demoModal = { open: true, name: ex.name, muscle: ex.muscle, equipment: ex.equipment, gifUrl: g.gifUrl, instructions: g.instructions || [] };
+      setTimeout(() => lucide.createIcons(), 50);
+    },
+    formatNum(n){ if(n >= 1000) return (n/1000).toFixed(1) + 'k'; return Math.round(n).toString(); },
+    est1RM(w,r){
+      const weight = parseFloat(w), reps = parseInt(r);
+      if(!weight || !reps || reps < 1 || reps > 15) return '-';
+      return (weight * (1 + reps/30)).toFixed(1);
+    },
+    calPerSet(log){
+      const met = this.exercises.find(e => e.id === log.exId)?.met || 3.5;
+      const workSec = log.type === 'warmup' ? 30 : (log.type === 'drop' || log.type === 'failure') ? 50 : 40;
+      const restSec = log.type === 'warmup' ? 30 : (log.type === 'drop' || log.type === 'failure') ? Math.floor(this.restDuration * 0.5) : this.restDuration;
+      return Math.round(((met * workSec) + (met * 0.6 * restSec)) * this.bodyWeight / 3600);
+    },
+    prFor(exId){
+      const sets = this.allLogs.filter(l => l.exId === exId && l.type !== 'warmup');
+      return sets.length ? Math.max(...sets.map(l => l.weight)) : 0;
+    },
+    exerciseName(id){ return this.exercises.find(e => e.id === id)?.name || id; },
+    selectExercise(ex){
+      const g = this.lookupGif(ex.name);
+      this.activeEx = { ...ex, gifUrl: g?.gifUrl || '', imageError: false, note: this.exerciseNotes[ex.id] || '' };
+      this.ex_reps = ''; this.ex_weight = ''; this.ex_setType = 'working';
+      setTimeout(() => lucide.createIcons(), 30);
+    },
+    cancelExercise(){ this.activeEx = null; },
+    addSet(){
+      if(!this.activeEx || !this.ex_reps || this.ex_weight === '') return;
+      this.sessionLogs.push({
+        id: Date.now(), exId: this.activeEx.id, exName: this.activeEx.name,
+        reps: parseInt(this.ex_reps), weight: parseFloat(this.ex_weight),
+        type: this.ex_setType, date: new Date().toISOString().slice(0,10)
+      });
+      this.saveSession();
+      if(navigator.vibrate) navigator.vibrate(50);
+      this.ex_reps = ''; this.ex_weight = '';
+      if(this.ex_setType !== 'warmup' && this.ex_setType !== 'drop') this.startRest(this.restDuration);
+    },
+    removeSet(exId, idx){
+      const idxs = this.sessionLogs.map((l,i) => l.exId === exId ? i : -1).filter(i => i >= 0);
+      if(idxs[idx] !== undefined){
+        const removed = this.sessionLogs.splice(idxs[idx], 1)[0];
+        this.allLogs = this.allLogs.filter(l => l.id !== removed.id);
+        localStorage.setItem('gt_allLogs', JSON.stringify(this.allLogs));
+        this.saveSession();
+      }
+    },
+    removeExerciseSession(exId){
+      const ids = this.sessionLogs.filter(l => l.exId === exId).map(l => l.id);
+      this.sessionLogs = this.sessionLogs.filter(l => l.exId !== exId);
+      this.allLogs = this.allLogs.filter(l => !ids.includes(l.id));
+      localStorage.setItem('gt_allLogs', JSON.stringify(this.allLogs));
+      this.saveSession();
+    },
+    startRest(sec){ this.restTimer.seconds = sec; this.restTimer.active = true; this.updateRestDisplay(); },
+    updateRestDisplay(){
+      const m = Math.floor(this.restTimer.seconds / 60), s = this.restTimer.seconds % 60;
+      this.restTimer.display = m + ':' + String(s).padStart(2,'0');
+    },
+    saveSettings(){
+      localStorage.setItem('gt_bodyWeight', this.bodyWeight);
+      localStorage.setItem('gt_restDuration', this.restDuration);
+      localStorage.setItem('gt_weeklyGoal', this.weeklyGoal);
+      localStorage.setItem('gt_accentColor', this.accentColor);
+    },
+    saveSession(){
+      localStorage.setItem('gt_session', JSON.stringify(this.sessionLogs));
+      const existing = new Set(this.allLogs.map(l => l.id));
+      this.sessionLogs.forEach(l => { if(!existing.has(l.id)){ this.allLogs.push(l); existing.add(l.id); } });
+      localStorage.setItem('gt_allLogs', JSON.stringify(this.allLogs));
+    }
+  }
+}
+</script>
+
+<!-- SERVICE WORKER REGISTRATION -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker Registered', reg))
+        .catch(err => console.log('Service Worker Failed', err));
+    });
+  }
+</script>
+</body>
+</html>
